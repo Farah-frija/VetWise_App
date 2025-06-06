@@ -72,4 +72,12 @@ cancelRendezvous(@Param('id', ParseIntPipe) id: number) {
 confirmRendezvous(@Param('id', ParseIntPipe) id: number) {
   return this.rendezvousService.confirmRendezvous(id);
 }
+@Get('creneaux-disponibles/:veterinaireId/:date')
+getCreneauxDisponibles(
+  @Param('veterinaireId', ParseIntPipe) veterinaireId: number,
+  @Param('date') date: string,
+) {
+  return this.rendezvousService.getCreneauxDisponibles(date, veterinaireId);
+}
+
 }

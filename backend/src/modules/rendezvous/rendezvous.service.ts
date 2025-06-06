@@ -275,4 +275,66 @@ export class RendezvousService {
       );
     }
   }
+  
+  async getCreneauxDisponibles(
+  date: string,
+  veterinaireId: number,
+  dureeMinutes = 30,
+): Promise<string[]> {
+  console.log('Fetching available time slots for date:', date, 'and vet ID:', veterinaireId);
+  const jourSemaine = moment(date).format('dddd').toLowerCase();
+  const disponibilites = await this.disponibiliteRepo.find({
+    where: {
+      veterinaire: { id: veterinaireId },
+      disponible: true,
+      jourSemaine: jourSemaine,
+    },
+  });
+
+  if (!disponibilites.length) return [];
+
+  const rdvs = await this.rendezvousRepo.find({
+    where: {
+      date,
+      veterinaire: { id: veterinaireId },
+    },
+  });
+
+  const reservedTimes = rdvs.map((rdv) => ({
+    start: moment(rdv.heure, 'HH:mm'),
+    end: moment(rdv.heure, 'HH:mm').add(dureeMinutes, 'minutes'),
+  }));
+
+  const creneauxDispo: string[] = [];
+
+  for (const dispo of disponibilites) {
+    const start = moment(dispo.heureDebut, 'HH:mm');
+    const end = moment(dispo.heureFin, 'HH:mm');
+
+    let current = start.clone();
+
+    while (current.add(0, 'minutes').isBefore(end)) {
+      const creneauStart = current.clone();
+      const creneauEnd = current.clone().add(dureeMinutes, 'minutes');
+
+      // Si dépasse fin, on skip
+      if (creneauEnd.isAfter(end)) break;
+
+      // Vérifie les conflits
+      const overlap = reservedTimes.some(
+        (rdv) =>
+          creneauStart.isBefore(rdv.end) && creneauEnd.isAfter(rdv.start),
+      );
+
+      if (!overlap) {
+        creneauxDispo.push(creneauStart.format('HH:mm'));
+      }
+
+      current = current.add(dureeMinutes, 'minutes');
+    }
+  }
+
+  return creneauxDispo;
+}
+
 }
