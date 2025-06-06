@@ -12,19 +12,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Cat } from "lucide-react"
 import Link from "next/link"
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [role, setRole] = useState("owner")
   const [isLoading, setIsLoading] = useState(false)
-  const { login } = useAuth()
+  const { register } = useAuth()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
-    const success = await login(email, password, role)
+    const success = await register(email, password, role)
     if (success) {
       router.push(`/${role}/dashboard`)
     }
@@ -39,8 +39,8 @@ export default function LoginPage() {
           <div className="flex justify-center mb-4">
             <Cat className="h-12 w-12 text-violet-600" />
           </div>
-          <CardTitle className="text-2xl font-bold text-violet-600">Welcome to VetCat</CardTitle>
-          <CardDescription>Sign in to your account</CardDescription>
+          <CardTitle className="text-2xl font-bold text-violet-600">Join VetCat</CardTitle>
+          <CardDescription>Create your account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -54,7 +54,6 @@ export default function LoginPage() {
               >
                 <option value="owner">Pet Owner</option>
                 <option value="vet">Veterinarian</option>
-                <option value="admin">Admin</option>
               </select>
             </div>
 
@@ -75,15 +74,15 @@ export default function LoginPage() {
             </div>
 
             <Button type="submit" className="w-full btn-primary" disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Sign In"}
+              {isLoading ? "Creating account..." : "Create Account"}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Don't have an account?{" "}
-              <Link href="/register" className="text-violet-600 hover:underline">
-                Sign up
+              Already have an account?{" "}
+              <Link href="/login" className="text-violet-600 hover:underline">
+                Sign in
               </Link>
             </p>
           </div>

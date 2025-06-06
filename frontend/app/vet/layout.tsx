@@ -1,48 +1,166 @@
 "use client"
 
 import type React from "react"
-
-import { useEffect, useState } from "react"
+import { useAuth } from "@/components/auth-provider"
 import { useRouter } from "next/navigation"
-import { SidebarProvider } from "@/components/ui/sidebar"
-import { VetSidebar } from "@/components/vet-sidebar"
+import { useEffect } from "react"
+import Link from "next/link"
+import {
+  Cat,
+  LayoutDashboard,
+  Calendar,
+  Clock,
+  FileText,
+  User,
+  MessageCircle,
+  LogOut,
+  Search,
+  Bell,
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
+import { Suspense } from "react"
+
+const menuItems = [
+  {
+    title: "Dashboard",
+    url: "/vet/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    title: "Appointments",
+    url: "/vet/appointments",
+    icon: Calendar,
+  },
+  {
+    title: "Schedule",
+    url: "/vet/schedule",
+    icon: Clock,
+  },
+  {
+    title: "Consultations",
+    url: "/vet/consultations",
+    icon: FileText,
+  },
+  {
+    title: "Chat",
+    url: "/vet/chat",
+    icon: MessageCircle,
+    badge: "3",
+  },
+  {
+    title: "Profile",
+    url: "/vet/profile",
+    icon: User,
+  },
+]
+
+function AppSidebar() {
+  const { user, logout } = useAuth()
+
+  return (
+    <Sidebar>
+      <SidebarHeader>
+        <Link href="/vet/dashboard" className="flex items-center space-x-2 px-2 py-1">
+          <Cat className="h-8 w-8 text-violet-600" />
+          <span className="text-2xl font-bold text-violet-600">VetCat</span>
+        </Link>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <Link href={item.url} className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </div>
+                      {item.badge && (
+                        <Badge variant="secondary" className="bg-violet-100 text-violet-700">
+                          {item.badge}
+                        </Badge>
+                      )}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={logout}>
+              <LogOut />
+              <span>Logout</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+    </Sidebar>
+  )
+}
 
 export default function VetLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const [isLoading, setIsLoading] = useState(true)
+  const { user } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    const userType = localStorage.getItem("userType")
-    const isLoggedIn = localStorage.getItem("isLoggedIn")
-
-    if (!isLoggedIn || userType !== "vet") {
+    if (!user || user.role !== "vet") {
       router.push("/login")
-    } else {
-      setIsLoading(false)
     }
-  }, [router])
+  }, [user, router])
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p>Chargement...</p>
-        </div>
-      </div>
-    )
+  if (!user || user.role !== "vet") {
+    return null
   }
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen">
-        <VetSidebar />
-        <main className="flex-1 bg-gray-50 overflow-auto">{children}</main>
-      </div>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <div className="flex flex-1 items-center gap-2 px-3">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input type="text" placeholder="Search patients..." className="pl-10" />
+            </div>
+            <Button variant="ghost" size="sm">
+              <Bell className="h-4 w-4" />
+            </Button>
+            <div className="text-sm text-gray-600">Dr. {user.name}</div>
+          </div>
+        </header>
+        <main className="flex-1 overflow-auto p-6">
+          <Suspense>{children}</Suspense>
+        </main>
+      </SidebarInset>
     </SidebarProvider>
   )
 }

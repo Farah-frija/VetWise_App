@@ -1,168 +1,237 @@
-"use client"
-
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Calendar, Clock, Users, FileText, CheckCircle, AlertCircle } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Calendar, Users, MessageCircle, Clock, TrendingUp, AlertCircle } from "lucide-react"
+import Link from "next/link"
 
 const todayStats = {
-  appointmentsToConfirm: 3,
-  confirmedAppointments: 8,
-  completedConsultations: 5,
-  totalPatients: 24,
+  appointments: 8,
+  pendingConfirmations: 3,
+  completedConsultations: 12,
+  activeChats: 5,
 }
 
-const recentAppointments = [
+const todayAppointments = [
   {
     id: 1,
-    time: "09:00",
-    owner: "Jean Dupont",
-    animal: "Max (Chien)",
-    type: "Consultation générale",
-    status: "En attente",
+    time: "9:00 AM",
+    petOwner: "John Doe",
+    petName: "Whiskers",
+    type: "Video Call",
+    status: "Confirmed",
   },
   {
     id: 2,
-    time: "10:30",
-    owner: "Marie Martin",
-    animal: "Luna (Chat)",
-    type: "Vaccination",
-    status: "Confirmé",
+    time: "10:30 AM",
+    petOwner: "Sarah Smith",
+    petName: "Buddy",
+    type: "In-person",
+    status: "Pending",
   },
   {
     id: 3,
-    time: "14:00",
-    owner: "Pierre Durand",
-    animal: "Charlie (Lapin)",
-    type: "Suivi post-opératoire",
-    status: "Confirmé",
+    time: "2:00 PM",
+    petOwner: "Mike Johnson",
+    petName: "Luna",
+    type: "Chat",
+    status: "Confirmed",
+  },
+]
+
+const recentMessages = [
+  {
+    id: 1,
+    from: "John Doe",
+    message: "Whiskers is feeling much better, thank you!",
+    time: "5 min ago",
+    unread: true,
+  },
+  {
+    id: 2,
+    from: "Sarah Smith",
+    message: "Can we reschedule tomorrow's appointment?",
+    time: "1 hour ago",
+    unread: true,
+  },
+  {
+    id: 3,
+    from: "Mike Johnson",
+    message: "Luna's medication seems to be working well",
+    time: "2 hours ago",
+    unread: false,
   },
 ]
 
 export default function VetDashboard() {
   return (
-    <div className="p-4 md:p-6">
-      <div className="mb-6 md:mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Bonjour Dr. Dubois !</h1>
-        <p className="text-gray-600 text-sm md:text-base">
-          Voici un aperçu de votre journée du {new Date().toLocaleDateString("fr-FR")}
-        </p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-600 mt-2">Welcome back, Dr. Johnson! Here's your overview for today.</p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
+      {/* Today's Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium">RDV à confirmer</CardTitle>
-            <AlertCircle className="h-4 w-4 text-orange-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl md:text-2xl font-bold text-orange-600">{todayStats.appointmentsToConfirm}</div>
-            <p className="text-xs text-gray-500">En attente de confirmation</p>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <Calendar className="h-8 w-8 text-blue-600" />
+              <div className="ml-4">
+                <p className="text-2xl font-bold">{todayStats.appointments}</p>
+                <p className="text-gray-600">Today's Appointments</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium">RDV confirmés</CardTitle>
-            <Calendar className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl md:text-2xl font-bold text-blue-600">{todayStats.confirmedAppointments}</div>
-            <p className="text-xs text-gray-500">Aujourd'hui</p>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <AlertCircle className="h-8 w-8 text-orange-600" />
+              <div className="ml-4">
+                <p className="text-2xl font-bold">{todayStats.pendingConfirmations}</p>
+                <p className="text-gray-600">Pending Confirmations</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium">Consultations terminées</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl md:text-2xl font-bold text-green-600">{todayStats.completedConsultations}</div>
-            <p className="text-xs text-gray-500">Cette semaine</p>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <MessageCircle className="h-8 w-8 text-green-600" />
+              <div className="ml-4">
+                <p className="text-2xl font-bold">{todayStats.activeChats}</p>
+                <p className="text-gray-600">Active Chats</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium">Patients total</CardTitle>
-            <Users className="h-4 w-4 text-purple-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl md:text-2xl font-bold text-purple-600">{todayStats.totalPatients}</div>
-            <p className="text-xs text-gray-500">Ce mois-ci</p>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <TrendingUp className="h-8 w-8 text-violet-600" />
+              <div className="ml-4">
+                <p className="text-2xl font-bold">{todayStats.completedConsultations}</p>
+                <p className="text-gray-600">This Week</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-        {/* Today's Appointments */}
-        <Card>
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Today's Schedule */}
+        <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-lg md:text-xl">
-              <Clock className="h-4 w-4 md:h-5 md:w-5" />
-              <span>Rendez-vous d'aujourd'hui</span>
-            </CardTitle>
-            <CardDescription>Vos prochains rendez-vous</CardDescription>
+            <div className="flex items-center justify-between">
+              <CardTitle>Today's Schedule</CardTitle>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/vet/appointments">View All</Link>
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentAppointments.map((appointment) => (
-                <div key={appointment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex-1">
-                    <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-3">
-                      <span className="font-medium text-blue-600 text-sm md:text-base">{appointment.time}</span>
-                      <div>
-                        <p className="font-medium text-sm md:text-base">{appointment.owner}</p>
-                        <p className="text-xs md:text-sm text-gray-500">{appointment.animal}</p>
-                        <p className="text-xs text-gray-400">{appointment.type}</p>
-                      </div>
+              {todayAppointments.map((appointment) => (
+                <div key={appointment.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-violet-100 rounded-full flex items-center justify-center">
+                      <Clock className="h-6 w-6 text-violet-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{appointment.time}</p>
+                      <p className="text-sm text-gray-600">
+                        {appointment.petOwner} - {appointment.petName}
+                      </p>
+                      <Badge variant="secondary" className="mt-1">
+                        {appointment.type}
+                      </Badge>
                     </div>
                   </div>
-                  <Badge variant={appointment.status === "Confirmé" ? "default" : "secondary"} className="text-xs">
-                    {appointment.status}
-                  </Badge>
+                  <div className="flex space-x-2">
+                    <Badge
+                      className={
+                        appointment.status === "Confirmed"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }
+                    >
+                      {appointment.status}
+                    </Badge>
+                    {appointment.status === "Pending" && (
+                      <Button size="sm" className="btn-primary">
+                        Confirm
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
-            <Button className="w-full mt-4" variant="outline">
-              Voir tous les rendez-vous
-            </Button>
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
+        {/* Recent Messages */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-lg md:text-xl">
-              <FileText className="h-4 w-4 md:h-5 md:w-5" />
-              <span>Actions rapides</span>
-            </CardTitle>
-            <CardDescription>Accès rapide aux fonctionnalités principales</CardDescription>
+            <div className="flex items-center justify-between">
+              <CardTitle>Recent Messages</CardTitle>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/vet/chat">View All</Link>
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <Button className="w-full justify-start text-sm" variant="outline">
-                <Calendar className="h-4 w-4 mr-2" />
-                Confirmer les rendez-vous en attente
-              </Button>
-              <Button className="w-full justify-start text-sm" variant="outline">
-                <FileText className="h-4 w-4 mr-2" />
-                Créer une nouvelle consultation
-              </Button>
-              <Button className="w-full justify-start text-sm" variant="outline">
-                <Clock className="h-4 w-4 mr-2" />
-                Voir l'emploi du temps
-              </Button>
-              <Button className="w-full justify-start text-sm" variant="outline">
-                <Users className="h-4 w-4 mr-2" />
-                Gérer les patients
-              </Button>
+            <div className="space-y-4">
+              {recentMessages.map((message) => (
+                <div key={message.id} className="p-3 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <div className="flex items-start justify-between mb-2">
+                    <p className="font-medium text-sm">{message.from}</p>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs text-gray-500">{message.time}</span>
+                      {message.unread && <div className="w-2 h-2 bg-violet-600 rounded-full"></div>}
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 line-clamp-2">{message.message}</p>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Button className="btn-primary h-20 flex-col" asChild>
+              <Link href="/vet/schedule">
+                <Clock className="h-6 w-6 mb-2" />
+                Manage Schedule
+              </Link>
+            </Button>
+            <Button variant="outline" className="h-20 flex-col" asChild>
+              <Link href="/vet/consultations">
+                <Users className="h-6 w-6 mb-2" />
+                New Consultation
+              </Link>
+            </Button>
+            <Button variant="outline" className="h-20 flex-col" asChild>
+              <Link href="/vet/chat">
+                <MessageCircle className="h-6 w-6 mb-2" />
+                Open Chat
+              </Link>
+            </Button>
+            <Button variant="outline" className="h-20 flex-col" asChild>
+              <Link href="/vet/appointments">
+                <Calendar className="h-6 w-6 mb-2" />
+                View Appointments
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

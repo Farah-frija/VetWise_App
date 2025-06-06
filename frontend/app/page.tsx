@@ -1,221 +1,187 @@
-"use client"
-
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Search, MapPin, Star, Clock, Heart, Shield, Users } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Star, Clock, Video, MessageCircle, Shield, Heart, CheckCircle, Cat } from "lucide-react"
 import Link from "next/link"
-import { PublicHeader } from "@/components/public-header"
-
-const veterinarians = [
-  {
-    id: 1,
-    name: "Dr. Marie Dubois",
-    clinic: "Clinique Vétérinaire du Centre",
-    speciality: "Médecine générale",
-    rating: 4.8,
-    reviews: 127,
-    location: "Paris 15ème",
-    image: "/placeholder.svg?height=100&width=100",
-    price: "45€",
-    availability: "Disponible aujourd'hui",
-  },
-  {
-    id: 2,
-    name: "Dr. Pierre Martin",
-    clinic: "Cabinet Vétérinaire Saint-Germain",
-    speciality: "Chirurgie",
-    rating: 4.9,
-    reviews: 89,
-    location: "Paris 6ème",
-    image: "/placeholder.svg?height=100&width=100",
-    price: "60€",
-    availability: "Disponible demain",
-  },
-  {
-    id: 3,
-    name: "Dr. Sophie Laurent",
-    clinic: "Clinique des Animaux",
-    speciality: "Dermatologie",
-    rating: 4.7,
-    reviews: 156,
-    location: "Boulogne",
-    image: "/placeholder.svg?height=100&width=100",
-    price: "55€",
-    availability: "Disponible aujourd'hui",
-  },
-  {
-    id: 4,
-    name: "Dr. Thomas Rousseau",
-    clinic: "Urgences Vétérinaires 24h",
-    speciality: "Urgences",
-    rating: 4.6,
-    reviews: 203,
-    location: "Paris 11ème",
-    image: "/placeholder.svg?height=100&width=100",
-    price: "80€",
-    availability: "Disponible maintenant",
-  },
-]
-
-const features = [
-  {
-    icon: Heart,
-    title: "Soins de qualité",
-    description: "Des vétérinaires qualifiés et expérimentés pour vos compagnons",
-  },
-  {
-    icon: Shield,
-    title: "Sécurisé",
-    description: "Plateforme sécurisée pour protéger vos données personnelles",
-  },
-  {
-    icon: Users,
-    title: "Communauté",
-    description: "Rejoignez une communauté de propriétaires d'animaux bienveillants",
-  },
-]
+import Image from "next/image"
 
 export default function HomePage() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [clinicFilter, setClinicFilter] = useState("")
-
-  const filteredVets = veterinarians.filter(
-    (vet) =>
-      vet.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      vet.clinic.toLowerCase().includes(clinicFilter.toLowerCase()),
-  )
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
-      <PublicHeader />
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
 
       {/* Hero Section */}
-      <section className="py-12 md:py-20 px-4">
-        <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 md:mb-6">
-            Trouvez le vétérinaire parfait pour votre animal
-          </h1>
-          <p className="text-lg md:text-xl text-gray-600 mb-6 md:mb-8 max-w-4xl mx-auto px-4">
-            Consultez des vétérinaires qualifiés en ligne ou en présentiel. Prenez rendez-vous facilement et offrez les
-            meilleurs soins à votre compagnon.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link href="/login">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
-                Commencer maintenant
-              </Button>
-            </Link>
-            <Link href="/about">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                En savoir plus
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-12 md:py-16 px-4 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-8 md:mb-12">
-            Pourquoi choisir VetCare ?
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            {features.map((feature, index) => (
-              <div key={index} className="text-center p-6">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-                  <feature.icon className="h-8 w-8 text-blue-600" />
+      <section className="bg-gradient-to-br from-violet-900 via-violet-800 to-violet-700 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h1 className="text-5xl font-bold leading-tight mb-6">
+                Stop stressing about your pet's health with{" "}
+                <span className="text-violet-300">24/7 online vet care</span>
+              </h1>
+              <p className="text-xl mb-8 text-violet-100">
+                Talk to a vet in minutes and receive a care and treatment plan with the top-ranked pet health app.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button size="lg" className="bg-pink-500 hover:bg-pink-600 text-white px-8 py-4 text-lg" asChild>
+                  <Link href="/register">Join Now</Link>
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-violet-300 text-violet-100 hover:bg-violet-800"
+                  asChild
+                >
+                  <Link href="/about">Learn more</Link>
+                </Button>
+              </div>
+              <div className="mt-8 flex items-center space-x-6 text-sm">
+                <div className="flex items-center">
+                  <Video className="h-4 w-4 mr-2" />
+                  Video calls available
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+                <div className="flex items-center">
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Chat support
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Search and Filters */}
-      <section className="px-4 py-8 md:py-12">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-4 md:p-6">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6 text-center">
-              Rechercher un vétérinaire
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Rechercher par nom de vétérinaire..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Rechercher par clinique..."
-                  value={clinicFilter}
-                  onChange={(e) => setClinicFilter(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Button className="bg-blue-600 hover:bg-blue-700">Rechercher</Button>
+            </div>
+            <div className="relative">
+              <Image
+                src="/placeholder.svg?height=500&width=400"
+                alt="Veterinarian video call interface"
+                width={400}
+                height={500}
+                className="rounded-lg shadow-2xl"
+              />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Veterinarians Grid */}
-      <section className="px-4 pb-12 md:pb-20">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 md:mb-8 text-center">
-            Vétérinaires disponibles ({filteredVets.length})
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-            {filteredVets.map((vet) => (
-              <Card key={vet.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-4">
-                  <div className="flex items-start space-x-4">
-                    <img
-                      src={vet.image || "/placeholder.svg"}
-                      alt={vet.name}
-                      className="w-12 h-12 md:w-16 md:h-16 rounded-full object-cover flex-shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-base md:text-lg truncate">{vet.name}</CardTitle>
-                      <CardDescription className="text-sm truncate">{vet.clinic}</CardDescription>
-                      <Badge variant="secondary" className="mt-1 text-xs">
-                        {vet.speciality}
-                      </Badge>
-                    </div>
+      {/* How It Works Section */}
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              How <span className="text-violet-600">VetCat</span> Works
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Get the veterinary care your pet needs in three simple steps
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="bg-violet-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Cat className="h-8 w-8 text-violet-600" />
+              </div>
+              <h3 className="text-xl font-bold mb-2">Create a Profile</h3>
+              <p className="text-gray-600">
+                Sign up and create profiles for all your pets with our AI-powered breed detection
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="bg-violet-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Video className="h-8 w-8 text-violet-600" />
+              </div>
+              <h3 className="text-xl font-bold mb-2">Connect with a Vet</h3>
+              <p className="text-gray-600">
+                Choose from our network of licensed veterinarians for video, chat, or in-person visits
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="bg-violet-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Heart className="h-8 w-8 text-violet-600" />
+              </div>
+              <h3 className="text-xl font-bold mb-2">Get Care & Treatment</h3>
+              <p className="text-gray-600">Receive personalized care plans, prescriptions, and follow-up support</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-16 bg-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Why Choose <span className="text-violet-600">VetCat</span>
+            </h2>
+            <p className="text-xl text-gray-600">Thousands of top-rated practicing veterinarians are on VetCat</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardContent className="p-6 text-center">
+                <div className="bg-violet-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Clock className="h-6 w-6 text-violet-600" />
+                </div>
+                <h3 className="font-bold mb-2">24/7 Availability</h3>
+                <p className="text-gray-600 text-sm">Access veterinary care anytime, day or night</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6 text-center">
+                <div className="bg-violet-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Shield className="h-6 w-6 text-violet-600" />
+                </div>
+                <h3 className="font-bold mb-2">Licensed Professionals</h3>
+                <p className="text-gray-600 text-sm">All our vets are fully licensed and experienced</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6 text-center">
+                <div className="bg-violet-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="h-6 w-6 text-violet-600" />
+                </div>
+                <h3 className="font-bold mb-2">Satisfaction Guaranteed</h3>
+                <p className="text-gray-600 text-sm">100% satisfaction or your money back</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6 text-center">
+                <div className="bg-violet-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Heart className="h-6 w-6 text-violet-600" />
+                </div>
+                <h3 className="font-bold mb-2">Compassionate Care</h3>
+                <p className="text-gray-600 text-sm">Dedicated to the health and happiness of your pets</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">What Pet Owners Say</h2>
+            <p className="text-xl text-gray-600">Thousands of satisfied pet owners trust VetCat</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[1, 2, 3].map((testimonial) => (
+              <Card key={testimonial}>
+                <CardContent className="p-6">
+                  <div className="flex mb-4">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star key={star} className="h-5 w-5 text-yellow-400 fill-current" />
+                    ))}
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-2">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 flex-shrink-0" />
-                      <span className="font-medium text-sm">{vet.rating}</span>
-                      <span className="text-gray-500 text-sm">({vet.reviews} avis)</span>
+                  <p className="text-gray-700 mb-4">
+                    "VetCat was a lifesaver when my dog got sick in the middle of the night. The vet was professional,
+                    caring, and helped us right away. I highly recommend this service!"
+                  </p>
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
+                    <div>
+                      <p className="font-medium">Sarah T.</p>
+                      <p className="text-sm text-gray-600">Dog Owner</p>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                      <span className="text-gray-600 text-sm truncate">{vet.location}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Clock className="h-4 w-4 text-green-500 flex-shrink-0" />
-                      <span className="text-green-600 font-medium text-sm">{vet.availability}</span>
-                    </div>
-                    <div className="flex items-center justify-between pt-2">
-                      <span className="text-xl md:text-2xl font-bold text-blue-600">{vet.price}</span>
-                      <span className="text-gray-500 text-xs">par consultation</span>
-                    </div>
-                    <Link href={`/veterinarian/${vet.id}`}>
-                      <Button className="w-full bg-blue-600 hover:bg-blue-700 text-sm">Voir la fiche</Button>
-                    </Link>
                   </div>
                 </CardContent>
               </Card>
@@ -225,19 +191,20 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-12 md:py-20 px-4 bg-blue-600">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl md:text-4xl font-bold text-white mb-4 md:mb-6">
-            Prêt à prendre soin de votre animal ?
-          </h2>
-          <p className="text-lg md:text-xl text-blue-100 mb-6 md:mb-8">
-            Rejoignez des milliers de propriétaires qui font confiance à VetCare
+      <section className="py-16 bg-violet-600 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold mb-4">Ready to get started?</h2>
+          <p className="text-xl mb-8 max-w-2xl mx-auto">
+            Join thousands of pet owners who trust VetCat for their pet's healthcare needs.
           </p>
-          <Link href="/login">
-            <Button size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-gray-100">
-              Créer un compte gratuitement
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" className="bg-white text-violet-600 hover:bg-gray-100" asChild>
+              <Link href="/register">Sign Up Now</Link>
             </Button>
-          </Link>
+            <Button size="lg" variant="outline" className="border-white text-white hover:bg-violet-700" asChild>
+              <Link href="/contact">Contact Us</Link>
+            </Button>
+          </div>
         </div>
       </section>
     </div>

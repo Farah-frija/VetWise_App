@@ -5,7 +5,7 @@ import { useAuth } from "@/components/auth-provider"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import Link from "next/link"
-import { Cat, Home, Heart, Calendar, MessageCircle, User, LogOut, Search, Bell } from "lucide-react"
+import { Cat, LayoutDashboard, Users, UserCheck, Settings, BarChart3, LogOut, Search, Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -28,28 +28,28 @@ import { Suspense } from "react"
 const menuItems = [
   {
     title: "Dashboard",
-    url: "/owner/dashboard",
-    icon: Home,
+    url: "/admin/dashboard",
+    icon: LayoutDashboard,
   },
   {
-    title: "My Pets",
-    url: "/owner/pets",
-    icon: Heart,
+    title: "Users",
+    url: "/admin/users",
+    icon: Users,
   },
   {
-    title: "Appointments",
-    url: "/owner/appointments",
-    icon: Calendar,
+    title: "Veterinarians",
+    url: "/admin/veterinarians",
+    icon: UserCheck,
   },
   {
-    title: "Chat",
-    url: "/owner/chat",
-    icon: MessageCircle,
+    title: "Statistics",
+    url: "/admin/statistics",
+    icon: BarChart3,
   },
   {
-    title: "Profile",
-    url: "/owner/profile",
-    icon: User,
+    title: "Settings",
+    url: "/admin/settings",
+    icon: Settings,
   },
 ]
 
@@ -59,14 +59,14 @@ function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <Link href="/owner/dashboard" className="flex items-center space-x-2 px-2 py-1">
+        <Link href="/admin/dashboard" className="flex items-center space-x-2 px-2 py-1">
           <Cat className="h-8 w-8 text-violet-600" />
-          <span className="text-2xl font-bold text-violet-600">VetCat</span>
+          <span className="text-2xl font-bold text-violet-600">VetCat Admin</span>
         </Link>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel>Administration</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
@@ -97,7 +97,7 @@ function AppSidebar() {
   )
 }
 
-export default function OwnerLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode
@@ -106,12 +106,12 @@ export default function OwnerLayout({
   const router = useRouter()
 
   useEffect(() => {
-    if (!user || user.role !== "owner") {
+    if (!user || user.role !== "admin") {
       router.push("/login")
     }
   }, [user, router])
 
-  if (!user || user.role !== "owner") {
+  if (!user || user.role !== "admin") {
     return null
   }
 
@@ -129,7 +129,7 @@ export default function OwnerLayout({
             <Button variant="ghost" size="sm">
               <Bell className="h-4 w-4" />
             </Button>
-            <div className="text-sm text-gray-600">Welcome, {user.name}</div>
+            <div className="text-sm text-gray-600">Admin: {user.name}</div>
           </div>
         </header>
         <main className="flex-1 overflow-auto p-6">

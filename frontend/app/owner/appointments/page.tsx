@@ -1,170 +1,117 @@
-"use client"
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, MapPin, User, X } from "lucide-react"
+import { Calendar, Clock, Video, MapPin, X } from "lucide-react"
 
 const appointments = [
   {
     id: 1,
-    date: "2024-04-22",
-    time: "14:30",
-    type: "Consultation générale",
-    mode: "En présentiel",
-    vet: "Dr. Marie Dubois",
-    clinic: "Clinique Vétérinaire du Centre",
-    animal: "Max",
-    status: "Confirmé",
-    address: "123 Rue de la Paix, Paris 15ème",
+    vetName: "Dr. Sarah Johnson",
+    petName: "Whiskers",
+    date: "2024-01-20",
+    time: "10:00 AM",
+    type: "Online - Video Call",
+    status: "Pending Confirmation",
+    clinic: "City Pet Clinic",
   },
   {
     id: 2,
-    date: "2024-04-30",
-    time: "10:00",
-    type: "Suivi dermatologique",
-    mode: "En ligne",
-    vet: "Dr. Sophie Laurent",
-    clinic: "Clinique des Animaux",
-    animal: "Luna",
-    status: "En attente",
-    address: null,
+    vetName: "Dr. Michael Chen",
+    petName: "Buddy",
+    date: "2024-01-18",
+    time: "2:30 PM",
+    type: "In-person",
+    status: "Confirmed",
+    clinic: "24/7 Animal Hospital",
   },
   {
     id: 3,
-    date: "2024-04-18",
-    time: "16:00",
-    type: "Vaccination",
-    mode: "En présentiel",
-    vet: "Dr. Pierre Martin",
-    clinic: "Cabinet Vétérinaire Saint-Germain",
-    animal: "Charlie",
-    status: "Terminé",
-    address: "45 Boulevard Saint-Germain, Paris 6ème",
+    vetName: "Dr. Emily Rodriguez",
+    petName: "Whiskers",
+    date: "2024-01-15",
+    time: "11:00 AM",
+    type: "Online - Chat",
+    status: "Completed",
+    clinic: "Cat Care Center",
   },
 ]
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case "Confirmé":
-      return "bg-green-100 text-green-800"
-    case "En attente":
+    case "Pending Confirmation":
       return "bg-yellow-100 text-yellow-800"
-    case "Terminé":
-      return "bg-gray-100 text-gray-800"
-    case "Annulé":
+    case "Confirmed":
+      return "bg-green-100 text-green-800"
+    case "Completed":
+      return "bg-blue-100 text-blue-800"
+    case "Cancelled":
       return "bg-red-100 text-red-800"
     default:
       return "bg-gray-100 text-gray-800"
   }
 }
 
-export default function AppointmentsPage() {
-  const handleCancelAppointment = (id: number) => {
-    // Handle appointment cancellation
-    console.log("Cancelling appointment:", id)
-  }
-
+export default function MyAppointments() {
   return (
-    <div className="p-4 md:p-6">
-      <div className="mb-6 md:mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Mes Rendez-vous</h1>
-        <p className="text-gray-600 text-sm md:text-base">Gérez vos consultations vétérinaires</p>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">My Appointments</h1>
+        <p className="text-gray-600 mt-2">View and manage your veterinary appointments</p>
       </div>
 
-      <div className="space-y-4 md:space-y-6">
+      <div className="space-y-4">
         {appointments.map((appointment) => (
-          <Card key={appointment.id} className="hover:shadow-lg transition-shadow">
+          <Card key={appointment.id}>
             <CardHeader>
-              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                <div className="flex-1">
-                  <CardTitle className="text-lg md:text-xl">{appointment.type}</CardTitle>
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-lg">{appointment.vetName}</CardTitle>
                   <CardDescription>
-                    Pour {appointment.animal} avec {appointment.vet}
+                    Appointment for {appointment.petName} at {appointment.clinic}
                   </CardDescription>
                 </div>
                 <Badge className={getStatusColor(appointment.status)}>{appointment.status}</Badge>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <Calendar className="h-5 w-5 text-gray-400 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-sm md:text-base">
-                        {new Date(appointment.date).toLocaleDateString("fr-FR", {
-                          weekday: "long",
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Clock className="h-5 w-5 text-gray-400 flex-shrink-0" />
-                    <p className="font-medium text-sm md:text-base">{appointment.time}</p>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <User className="h-5 w-5 text-gray-400 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-sm md:text-base">{appointment.vet}</p>
-                      <p className="text-sm text-gray-500">{appointment.clinic}</p>
-                    </div>
-                  </div>
+              <div className="grid md:grid-cols-3 gap-4 mb-4">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm">{appointment.date}</span>
                 </div>
-
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-sm text-gray-500">Type de consultation</p>
-                    <p className="font-medium text-sm md:text-base">{appointment.mode}</p>
-                  </div>
-                  {appointment.address && (
-                    <div className="flex items-start space-x-3">
-                      <MapPin className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm text-gray-500">Adresse</p>
-                        <p className="font-medium text-sm md:text-base">{appointment.address}</p>
-                      </div>
-                    </div>
+                <div className="flex items-center space-x-2">
+                  <Clock className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm">{appointment.time}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  {appointment.type.includes("Online") ? (
+                    <Video className="h-4 w-4 text-gray-500" />
+                  ) : (
+                    <MapPin className="h-4 w-4 text-gray-500" />
                   )}
+                  <span className="text-sm">{appointment.type}</span>
                 </div>
               </div>
 
-              {appointment.status === "En attente" && (
-                <div className="mt-6 pt-4 border-t">
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleCancelAppointment(appointment.id)}
-                      className="w-full sm:w-auto"
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      Annuler le rendez-vous
-                    </Button>
-                    <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                      Modifier
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {appointment.status === "Confirmé" && (
-                <div className="mt-6 pt-4 border-t">
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    {appointment.mode === "En ligne" && (
-                      <Button className="bg-green-600 hover:bg-green-700 w-full sm:w-auto" size="sm">
-                        Rejoindre la consultation
-                      </Button>
-                    )}
-                    <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                      Voir les détails
-                    </Button>
-                  </div>
-                </div>
-              )}
+              <div className="flex space-x-2">
+                {appointment.status === "Pending Confirmation" && (
+                  <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                    <X className="h-4 w-4 mr-1" />
+                    Cancel
+                  </Button>
+                )}
+                {appointment.status === "Confirmed" && appointment.type.includes("Video") && (
+                  <Button size="sm" className="btn-primary">
+                    <Video className="h-4 w-4 mr-1" />
+                    Join Video Call
+                  </Button>
+                )}
+                {appointment.status === "Confirmed" && appointment.type.includes("Chat") && (
+                  <Button size="sm" className="btn-primary">
+                    Open Chat
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
         ))}
