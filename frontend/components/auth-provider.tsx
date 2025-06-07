@@ -67,24 +67,18 @@ const USER_KEY = "user_data";
 const getStoredToken = (): string | null => {
   //it prevents any server logic (local_storage) from executing on a browser environment
   if (typeof window === "undefined") return null;
-  const userData = localStorage.getItem(TOKEN_KEY);
-  if (!userData || userData === "undefined") return null;
-  try {
-    return JSON.parse(userData);
-  } catch {
-    return null;
-  }
+  const tokenData = localStorage.getItem(TOKEN_KEY);
+  if (!tokenData || tokenData === "undefined") return null;
+  // Token is stored as a plain string, not JSON
+  return tokenData;
 };
 
 const getStoredRefreshToken = (): string | null => {
   if (typeof window === "undefined") return null;
-  const userData = localStorage.getItem(REFRESH_TOKEN_KEY);
-  if (!userData || userData === "undefined") return null;
-  try {
-    return JSON.parse(userData);
-  } catch {
-    return null;
-  }
+  const tokenData = localStorage.getItem(REFRESH_TOKEN_KEY);
+  if (!tokenData || tokenData === "undefined") return null;
+  // Refresh token is also stored as a plain string
+  return tokenData;
 };
 
 const getStoredUser = (): User | null => {

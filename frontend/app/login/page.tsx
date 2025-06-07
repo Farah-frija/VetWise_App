@@ -31,7 +31,7 @@ export default function LoginPage() {
 
     try {
       const success = await login(email, password);
-      console.log("Logged in user:", user);
+      console.log("Logged in user hhhh:", user);
       if (success) {
         // Redirect based on user role after successful login
         if (user?.role === "ADMINISTRATEUR") {
