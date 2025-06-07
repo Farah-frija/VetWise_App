@@ -1,106 +1,166 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Calendar, Heart, MessageCircle, Clock, Plus, AlertTriangle, CheckCircle, Star } from "lucide-react"
-import Link from "next/link"
-import Image from "next/image"
+"use client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Calendar,
+  Heart,
+  MessageCircle,
+  Clock,
+  Plus,
+  AlertTriangle,
+  CheckCircle,
+  Star,
+} from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import { useApiRequest } from "@/components/auth-provider";
+import { useAuth } from "@/components/auth-provider";
 
-const upcomingAppointments = [
-  {
-    id: 1,
-    vetName: "Dr. Sarah Johnson",
-    petName: "Whiskers",
-    date: "Today",
-    time: "2:00 PM",
-    type: "Video Call",
-    status: "Confirmed",
-  },
-  {
-    id: 2,
-    vetName: "Dr. Michael Chen",
-    petName: "Buddy",
-    date: "Tomorrow",
-    time: "10:00 AM",
-    type: "In-person",
-    status: "Pending",
-  },
-]
+type Veterinaire = {
+  id: number;
+  nom: string;
+  prenom: string;
+  email: string;
+  telephone?: string | null;
+  adresse?: string | null;
+  numLicence: string;
+  specialites: string;
+};
 
-const recentActivity = [
-  {
-    id: 1,
-    type: "appointment",
-    message: "Appointment with Dr. Johnson completed",
-    time: "2 hours ago",
-    icon: CheckCircle,
-    color: "text-green-600",
-  },
-  {
-    id: 2,
-    type: "reminder",
-    message: "Whiskers vaccination due next week",
-    time: "1 day ago",
-    icon: AlertTriangle,
-    color: "text-yellow-600",
-  },
-  {
-    id: 3,
-    type: "message",
-    message: "New message from Dr. Rodriguez",
-    time: "2 days ago",
-    icon: MessageCircle,
-    color: "text-blue-600",
-  },
-]
-
-const pets = [
-  {
-    id: 1,
-    name: "Whiskers",
-    breed: "Persian Cat",
-    image: "/placeholder.svg?height=60&width=60",
-    nextCheckup: "2024-02-15",
-  },
-  {
-    id: 2,
-    name: "Buddy",
-    breed: "Golden Retriever",
-    image: "/placeholder.svg?height=60&width=60",
-    nextCheckup: "2024-03-01",
-  },
-]
-
-const veterinarians = [
-  {
-    id: 1,
-    name: "Dr. Sarah Johnson",
-    specialty: "Small Animal Medicine",
-    clinic: "City Pet Clinic",
-    rating: 4.9,
-    reviews: 127,
-    location: "New York, NY",
-    available: true,
-    image: "/placeholder.svg?height=100&width=100",
-  },
-  {
-    id: 2,
-    name: "Dr. Michael Chen",
-    specialty: "Emergency Care",
-    clinic: "24/7 Animal Hospital",
-    rating: 4.8,
-    reviews: 89,
-    location: "Los Angeles, CA",
-    available: true,
-    image: "/placeholder.svg?height=100&width=100",
-  },
-]
+type Animal = {
+  id: number;
+  nom: string;
+  espece: string;
+  race: string;
+  dateNaissance: Date;
+  sexe: string;
+};
 
 export default function OwnerDashboard() {
+  console.log("hello");
+
+  const { request } = useApiRequest();
+  const { user } = useAuth();
+
+  // States for pets
+  const [pets, setPets] = useState<Animal[]>([]);
+  const [petsLoading, setPetsLoading] = useState(true);
+
+  // States for veterinarians
+  const [veterinarians, setVeterinarians] = useState<Veterinaire[]>([]);
+  const [vetsLoading, setVetsLoading] = useState(true);
+
+  // States for appointments (commented out but structure ready)
+  const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+  const [appointmentsLoading, setAppointmentsLoading] = useState(true);
+
+  // Fetch pets
+  useEffect(() => {
+    const fetchPets = async () => {
+      if (!user || !user.utilisateur_id) {
+        setPetsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await request(
+          `/animal/mypets/${user.utilisateur_id}`,
+          {
+            method: "GET",
+          }
+        );
+        const data = await response.json();
+        setPets(data);
+      } catch (error) {
+        console.error("Failed to fetch pets:", error);
+      } finally {
+        setPetsLoading(false);
+      }
+    };
+
+    fetchPets();
+  }, [request, user]);
+
+  // Fetch veterinarians
+  useEffect(() => {
+    const fetchVets = async () => {
+      try {
+        const response = await request("/utilisateurs/veterinaires", {
+          method: "GET",
+        });
+        const data = await response.json();
+        setVeterinarians(data);
+      } catch (error) {
+        console.error("Failed to fetch veterinarians:", error);
+      } finally {
+        setVetsLoading(false);
+      }
+    };
+
+    fetchVets();
+  }, [request]);
+
+  // Fetch appointments (commented out)
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      if (!user || !user.utilisateur_id) {
+        setAppointmentsLoading(false);
+        return;
+      }
+      try {
+        const response = await request(
+          `/appointments/upcoming/${user.utilisateur_id}`,
+          {
+            method: "GET",
+          }
+        );
+        const data = await response.json();
+        setUpcomingAppointments(data);
+      } catch (error) {
+        console.error("Failed to fetch appointments:", error);
+      } finally {
+        setAppointmentsLoading(false);
+      }
+    };
+
+    fetchAppointments();
+  }, [request, user]);
+
+  // Helper function to calculate age from birth date
+  const calculateAge = (dateNaissance: Date) => {
+    const today = new Date();
+    const birthDate = new Date(dateNaissance);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+
+    return age;
+  };
+
+  // Show loading state
+  if (petsLoading || vetsLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-2">Welcome back! Here's what's happening with your pets.</p>
+        <p className="text-gray-600 mt-2">
+          Welcome back! Here's what's happening with your pets.
+        </p>
       </div>
 
       {/* Quick Stats */}
@@ -121,7 +181,9 @@ export default function OwnerDashboard() {
             <div className="flex items-center">
               <Calendar className="h-8 w-8 text-blue-600" />
               <div className="ml-4">
-                <p className="text-2xl font-bold">{upcomingAppointments.length}</p>
+                <p className="text-2xl font-bold">
+                  {upcomingAppointments.length}
+                </p>
                 <p className="text-gray-600">Upcoming</p>
               </div>
             </div>
@@ -132,8 +194,8 @@ export default function OwnerDashboard() {
             <div className="flex items-center">
               <MessageCircle className="h-8 w-8 text-green-600" />
               <div className="ml-4">
-                <p className="text-2xl font-bold">3</p>
-                <p className="text-gray-600">Active Chats</p>
+                <p className="text-2xl font-bold">{veterinarians.length}</p>
+                <p className="text-gray-600">Available Vets</p>
               </div>
             </div>
           </CardContent>
@@ -143,8 +205,10 @@ export default function OwnerDashboard() {
             <div className="flex items-center">
               <Clock className="h-8 w-8 text-orange-600" />
               <div className="ml-4">
-                <p className="text-2xl font-bold">1</p>
-                <p className="text-gray-600">Reminders</p>
+                <p className="text-2xl font-bold">
+                  {pets.filter((pet) => pet.espece === "Chat").length}
+                </p>
+                <p className="text-gray-600">Cats</p>
               </div>
             </div>
           </CardContent>
@@ -163,7 +227,8 @@ export default function OwnerDashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            {upcomingAppointments.length > 0 ? (
+            {/* Commented out appointments section as requested */}
+            {/*upcomingAppointments.length > 0 ? (
               <div className="space-y-4">
                 {upcomingAppointments.map((appointment) => (
                   <div key={appointment.id} className="flex items-center justify-between p-4 border rounded-lg">
@@ -193,15 +258,15 @@ export default function OwnerDashboard() {
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="text-center py-8">
-                <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 mb-4">No upcoming appointments</p>
-                <Button className="btn-primary" asChild>
-                  <Link href="/owner/dashboard">Book Appointment</Link>
-                </Button>
-              </div>
-            )}
+            ) : (*/}
+            <div className="text-center py-8">
+              <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 mb-4">No upcoming appointments</p>
+              <Button className="btn-primary" asChild>
+                <Link href="/owner/book">Book Appointment</Link>
+              </Button>
+            </div>
+            {/*)*/}
           </CardContent>
         </Card>
 
@@ -219,48 +284,43 @@ export default function OwnerDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {pets.map((pet) => (
-                <Link key={pet.id} href={`/owner/pets/${pet.id}`} className="block">
-                  <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50">
-                    <Image
-                      src={pet.image || "/placeholder.svg"}
-                      alt={pet.name}
-                      width={40}
-                      height={40}
-                      className="rounded-full"
-                    />
-                    <div className="flex-1">
-                      <p className="font-medium">{pet.name}</p>
-                      <p className="text-sm text-gray-600">{pet.breed}</p>
-                      <p className="text-xs text-gray-500">Next checkup: {pet.nextCheckup}</p>
+              {pets.length > 0 ? (
+                pets.map((pet) => (
+                  <Link
+                    key={pet.id}
+                    href={`/owner/pets/${pet.id}`}
+                    className="block"
+                  >
+                    <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                      <div className="w-10 h-10 bg-gradient-to-br from-violet-400 to-purple-500 rounded-full flex items-center justify-center">
+                        <Heart className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium">{pet.nom}</p>
+                        <p className="text-sm text-gray-600">
+                          {pet.race} • {pet.espece}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {calculateAge(pet.dateNaissance)} years old •{" "}
+                          {pet.sexe}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <Heart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600 mb-4">No pets registered yet</p>
+                  <Button variant="outline" asChild>
+                    <Link href="/owner/pets/add">Add Your First Pet</Link>
+                  </Button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {recentActivity.map((activity) => (
-              <div key={activity.id} className="flex items-center space-x-4">
-                <activity.icon className={`h-5 w-5 ${activity.color}`} />
-                <div className="flex-1">
-                  <p className="text-sm">{activity.message}</p>
-                  <p className="text-xs text-gray-500">{activity.time}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Available Veterinarians */}
       <Card>
@@ -274,37 +334,58 @@ export default function OwnerDashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-2 gap-4">
-            {veterinarians.map((vet) => (
-              <Card key={vet.id} className="hover:shadow-sm transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-start space-x-4">
-                    <Image
-                      src={vet.image || "/placeholder.svg"}
-                      alt={vet.name}
-                      width={50}
-                      height={50}
-                      className="rounded-full"
-                    />
-                    <div className="flex-1">
-                      <p className="font-medium">{vet.name}</p>
-                      <p className="text-sm text-gray-600">{vet.specialty}</p>
-                      <div className="flex items-center mt-1">
-                        <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                        <span className="text-xs font-medium ml-1">{vet.rating}</span>
+            {veterinarians.length > 0 ? (
+              veterinarians.map((vet) => (
+                <Card
+                  key={vet.id}
+                  className="hover:shadow-sm transition-shadow"
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start space-x-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-semibold text-sm">
+                          {vet.prenom.charAt(0)}
+                          {vet.nom.charAt(0)}
+                        </span>
                       </div>
-                      <div className="mt-2">
-                        <Button size="sm" className="btn-primary text-xs" asChild>
-                          <Link href={`/owner/book/${vet.id}`}>Book</Link>
-                        </Button>
+                      <div className="flex-1">
+                        <p className="font-medium">
+                          Dr. {vet.prenom} {vet.nom}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {vet.specialites}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          License: {vet.numLicence}
+                        </p>
+                        {vet.telephone && (
+                          <p className="text-xs text-gray-500">
+                            {vet.telephone}
+                          </p>
+                        )}
+                        <div className="mt-2">
+                          <Button size="sm" className="text-xs" asChild>
+                            <Link href={`/owner/book/${vet.id}`}>
+                              Book Appointment
+                            </Link>
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="col-span-2 text-center py-8">
+                <AlertTriangle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">
+                  No veterinarians available at the moment
+                </p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
