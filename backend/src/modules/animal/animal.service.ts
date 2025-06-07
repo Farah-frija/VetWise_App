@@ -64,6 +64,10 @@ export class AnimalService {
   }
 
   findByProprietaire(proprietaireId: number): Promise<Animal[]> {
+    console.log(
+      'Recherche des animaux pour le propriétaire ID:',
+      proprietaireId,
+    );
     return this.animalRepository.find({
       where: { proprietaire: { id: proprietaireId } },
     });

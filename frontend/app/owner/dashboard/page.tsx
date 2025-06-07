@@ -39,8 +39,6 @@ type Animal = {
 };
 
 export default function OwnerDashboard() {
-  console.log("hello");
-
   const { request } = useApiRequest();
   const { user } = useAuth();
 
@@ -63,7 +61,7 @@ export default function OwnerDashboard() {
         setPetsLoading(false);
         return;
       }
-
+      console.log("Fetching pets for user:", user.utilisateur_id);
       try {
         const response = await request(
           `/animal/mypets/${user.utilisateur_id}`,
@@ -103,7 +101,7 @@ export default function OwnerDashboard() {
   }, [request]);
 
   // Fetch appointments (commented out)
-  useEffect(() => {
+  /*useEffect(() => {
     const fetchAppointments = async () => {
       if (!user || !user.utilisateur_id) {
         setAppointmentsLoading(false);
@@ -126,7 +124,7 @@ export default function OwnerDashboard() {
     };
 
     fetchAppointments();
-  }, [request, user]);
+  }, [request, user]);*/
 
   // Helper function to calculate age from birth date
   const calculateAge = (dateNaissance: Date) => {
@@ -189,30 +187,6 @@ export default function OwnerDashboard() {
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <MessageCircle className="h-8 w-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-2xl font-bold">{veterinarians.length}</p>
-                <p className="text-gray-600">Available Vets</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Clock className="h-8 w-8 text-orange-600" />
-              <div className="ml-4">
-                <p className="text-2xl font-bold">
-                  {pets.filter((pet) => pet.espece === "Chat").length}
-                </p>
-                <p className="text-gray-600">Cats</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
@@ -258,7 +232,7 @@ export default function OwnerDashboard() {
                   </div>
                 ))}
               </div>
-            ) : (*/}
+            ) : (}
             <div className="text-center py-8">
               <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600 mb-4">No upcoming appointments</p>

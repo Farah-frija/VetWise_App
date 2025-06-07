@@ -155,7 +155,6 @@ export class UtilisateurService extends GenericService<Utilisateur> {
   async getAllVets(): Promise<Veterinaire[]> {
     return this.UtilisateurRepository.find({
       where: { role: UserRole.VETERINARIAN, deletedAt: null },
-      relations: ['specialites'],
     }) as Promise<Veterinaire[]>;
   }
 }
