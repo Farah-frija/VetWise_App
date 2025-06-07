@@ -37,6 +37,28 @@ type Animal = {
   dateNaissance: Date;
   sexe: string;
 };
+type Appointment = {
+  id: number;
+  date: string;
+  heure: string;
+  type: string;
+  statut: "pending" | "confirmed" | "cancelled";
+  motif: string;
+  notes: string;
+  veterinaire: {
+    prenom: string;
+    nom: string;
+  };
+  animaux: {
+    animal: {
+      nom: string;
+      espece: string;
+      race: string;
+      dateNaissance: string;
+      sexe: string;
+    };
+  }[];
+};
 
 export default function OwnerDashboard() {
   const { request } = useApiRequest();
@@ -51,16 +73,19 @@ export default function OwnerDashboard() {
   const [vetsLoading, setVetsLoading] = useState(true);
 
   // States for appointments (commented out but structure ready)
-  const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+  //const [upcomingAppointments, setUpcomingAppointments] = useState([]);
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
+  const [upcomingAppointments, setUpcomingAppointments] = useState<
+    Appointment[]
+  >([]);
 
-  // Fetch pets
   useEffect(() => {
+    if (!user || !user.id) {
+      setPetsLoading(false);
+      return;
+    }
+
     const fetchPets = async () => {
-      if (!user || !user.id) {
-        setPetsLoading(false);
-        return;
-      }
       console.log("Fetching pets for user:", user.id);
       try {
         const response = await request(`/animal/mypets/${user.id}`, {
@@ -76,9 +101,8 @@ export default function OwnerDashboard() {
     };
 
     fetchPets();
-  }, [request, user]);
+  }, [user?.id]); // no need to include `request` if it's stable
 
-  // Fetch veterinarians
   useEffect(() => {
     const fetchVets = async () => {
       try {
@@ -95,22 +119,16 @@ export default function OwnerDashboard() {
     };
 
     fetchVets();
-  }, [request]);
+  }, []); //  no need to include `request` if it's stable
 
-  // Fetch appointments (commented out)
-  /*useEffect(() => {
+  useEffect(() => {
+    if (!user?.id) return;
+
     const fetchAppointments = async () => {
-      if (!user || !user.id) {
-        setAppointmentsLoading(false);
-        return;
-      }
       try {
-        const response = await request(
-          `/appointments/upcoming/${user.id}`,
-          {
-            method: "GET",
-          }
-        );
+        const response = await request(`/rendezvous/upcoming/${user.id}`, {
+          method: "GET",
+        });
         const data = await response.json();
         setUpcomingAppointments(data);
       } catch (error) {
@@ -121,7 +139,7 @@ export default function OwnerDashboard() {
     };
 
     fetchAppointments();
-  }, [request, user]);*/
+  }, [user?.id]);
 
   // Helper function to calculate age from birth date
   const calculateAge = (dateNaissance: Date) => {
@@ -198,19 +216,25 @@ export default function OwnerDashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            {/* Commented out appointments section as requested */}
-            {/*upcomingAppointments.length > 0 ? (
+            {upcomingAppointments.length > 0 ? (
               <div className="space-y-4">
                 {upcomingAppointments.map((appointment) => (
-                  <div key={appointment.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div
+                    key={appointment.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
                     <div className="flex items-center space-x-4">
                       <div className="w-12 h-12 bg-violet-100 rounded-full flex items-center justify-center">
                         <Calendar className="h-6 w-6 text-violet-600" />
                       </div>
                       <div>
-                        <p className="font-medium">{appointment.vetName}</p>
+                        <p className="font-medium">
+                          Dr. {appointment.veterinaire.prenom}{" "}
+                          {appointment.veterinaire.nom}
+                        </p>
                         <p className="text-sm text-gray-600">
-                          {appointment.petName} • {appointment.date} at {appointment.time}
+                          {appointment.animaux?.[0]?.animal?.nom ?? "Inconnu"} •{" "}
+                          {appointment.date} à {appointment.heure}
                         </p>
                         <Badge variant="secondary" className="mt-1">
                           {appointment.type}
@@ -219,25 +243,27 @@ export default function OwnerDashboard() {
                     </div>
                     <Badge
                       className={
-                        appointment.status === "Confirmed"
+                        appointment.statut === "confirmed"
                           ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
+                          : appointment.statut === "pending"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-red-100 text-red-800"
                       }
                     >
-                      {appointment.status}
+                      {appointment.statut}
                     </Badge>
                   </div>
                 ))}
               </div>
-            ) : (}
-            <div className="text-center py-8">
-              <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 mb-4">No upcoming appointments</p>
-              <Button className="btn-primary" asChild>
-                <Link href="/owner/book">Book Appointment</Link>
-              </Button>
-            </div>
-            {/*)*/}
+            ) : (
+              <div className="text-center py-8">
+                <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 mb-4">No upcoming appointments</p>
+                <Button className="btn-primary" asChild>
+                  <Link href="/owner/book">Book Appointment</Link>
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 

@@ -72,10 +72,30 @@ export function Navbar() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem asChild>
-                      <Link href={`/${user.role}/dashboard`}>Dashboard</Link>
+                      <Link
+                        href={`/${
+                          user.role === "VETERINAIRE"
+                            ? "vet"
+                            : user.role === "PROPRIETAIRE_ANIMAL"
+                            ? "owner"
+                            : ""
+                        }/dashboard`}
+                      >
+                        Dashboard
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href={`/${user.role}/profile`}>Profile</Link>
+                      <Link
+                        href={`/${
+                          user.role === "VETERINAIRE"
+                            ? "vet"
+                            : user.role === "PROPRIETAIRE_ANIMAL"
+                            ? "owner"
+                            : ""
+                        }/profile`}
+                      >
+                        Profile
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={logout}>
                       <LogOut className="h-4 w-4 mr-2" />
