@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useApiRequest } from "@/components/auth-provider";
 import {
   Sidebar,
   SidebarContent,
@@ -33,6 +34,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Suspense } from "react";
+import { useState } from "react";
 
 const menuItems = [
   {
@@ -109,6 +111,71 @@ function AppSidebar() {
   );
 }
 
+// Profile Image Component
+function ProfileImage({
+  src,
+  alt,
+  loading,
+  className = "w-8 h-8 rounded-full object-cover",
+}: {
+  src: string | null;
+  alt: string;
+  loading: boolean;
+  className?: string;
+}) {
+  const [imageError, setImageError] = useState(false);
+
+  if (loading) {
+    return (
+      <div
+        className={`${className} bg-gray-200 animate-pulse flex items-center justify-center`}
+      >
+        <User className="h-4 w-4 text-gray-400" />
+      </div>
+    );
+  }
+
+  if (!src || imageError) {
+    return (
+      <div
+        className={`${className} bg-violet-100 flex items-center justify-center`}
+      >
+        <User className="h-4 w-4 text-violet-600" />
+      </div>
+    );
+  }
+
+  // Handle different image formats
+  const getImageSrc = (imageSrc: string) => {
+    // If it's already a complete URL, use it as is
+    if (
+      imageSrc.startsWith("http://") ||
+      imageSrc.startsWith("https://") ||
+      imageSrc.startsWith("data:")
+    ) {
+      return imageSrc;
+    }
+
+    // If it looks like base64 but missing data URL prefix
+    if (imageSrc.includes("/") && !imageSrc.startsWith("data:")) {
+      // Assume it's a base64 string, add data URL prefix
+      return `data:image/jpeg;base64,${imageSrc}`;
+    }
+
+    return imageSrc;
+  };
+
+  return (
+    <img
+      src={getImageSrc(src)}
+      alt={alt}
+      className={className}
+      onError={() => setImageError(true)}
+      onLoad={() => setImageError(false)}
+    />
+  );
+}
+
 export default function OwnerLayout({
   children,
 }: {
@@ -116,6 +183,55 @@ export default function OwnerLayout({
 }) {
   const { user, token, isLoading } = useAuth(); // Add token and isLoading
   const router = useRouter();
+  const { request } = useApiRequest();
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+
+  // Fetch profile image
+  useEffect(() => {
+    const fetchProfileImage = async () => {
+      if (!user || !user.id || !token) {
+        setProfileLoading(false);
+        return;
+      }
+
+      try {
+        const response = await request(`/utilisateurs/image/${user.id}`, {
+          method: "GET",
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          // Handle different response formats
+          if (data.image) {
+            // If the response has an image field
+            setProfileImage(data.image);
+          } else if (data.imageUrl) {
+            // If the response has an imageUrl field
+            setProfileImage(data.imageUrl);
+          } else if (typeof data === "string") {
+            // If the response is directly a string
+            setProfileImage(data);
+          } else {
+            console.log("No image data found in response");
+            setProfileImage(null);
+          }
+        } else {
+          console.log("Profile image response not ok:", response.status);
+          setProfileImage(null);
+        }
+      } catch (error) {
+        console.error("Failed to fetch profile image:", error);
+        setProfileImage(null);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    if (user && token && !isLoading) {
+      fetchProfileImage();
+    }
+  }, [request, user, token, isLoading]);
 
   useEffect(() => {
     // Don't redirect while still loading
@@ -163,9 +279,16 @@ export default function OwnerLayout({
             <Button variant="ghost" size="sm">
               <Bell className="h-4 w-4" />
             </Button>
-            {/* Fix: Use prenom instead of name */}
-            <div className="text-sm text-gray-600">
-              Welcome, {user.prenom} {user.nom}
+            <div className="flex items-center space-x-3 text-sm text-gray-600">
+              <ProfileImage
+                src={profileImage}
+                alt={`${user.prenom} ${user.nom}'s profile`}
+                loading={profileLoading}
+                className="w-8 h-8 rounded-full object-cover border border-gray-200"
+              />
+              <div>
+                Welcome, {user.prenom} {user.nom}
+              </div>
             </div>
           </div>
         </header>

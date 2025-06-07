@@ -157,4 +157,81 @@ export class UtilisateurService extends GenericService<Utilisateur> {
       where: { role: UserRole.VETERINARIAN, deletedAt: null },
     }) as Promise<Veterinaire[]>;
   }
+
+  async getUserImage(id: number): Promise<string> {
+    const user = await this.UtilisateurRepository.findOne({
+      where: { id, deletedAt: null },
+      select: ['image'],
+    });
+
+    if (!user || !user.image) {
+      throw new NotFoundException('User image not found');
+    }
+
+    return user.image;
+  }
+
+  async getProfile(
+    userId: number,
+  ): Promise<Omit<Utilisateur, 'motDePasse' | 'twoFactorSecret'>> {
+    const user = await this.UtilisateurRepository.findOne({
+      where: { id: userId, deletedAt: null },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const { motDePasse, twoFactorSecret, ...profile } = user;
+    return profile;
+  }
+
+  async updateProfile(id: number, updateData: any) {
+    try {
+      const user = await this.UtilisateurRepository.findOne({
+        where: { id, deletedAt: null },
+      });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      await this.UtilisateurRepository.update(id, updateData);
+
+      const updatedUser = await this.UtilisateurRepository.findOne({
+        where: { id, deletedAt: null },
+      });
+      return updatedUser;
+    } catch (error) {
+      throw new Error(`Failed to update profile: ${error.message}`);
+    }
+  }
+
+  async updateProfileImage(id: number, base64Image: string) {
+    try {
+      // Validate base64 image format
+      if (!base64Image.startsWith('data:image/')) {
+        throw new Error('Invalid image format. Must be base64 encoded image.');
+      }
+      /*
+      // Optional: Add size validation for base64 string
+      const maxSize = 2 * 1024 * 1024; // 2MB in bytes (base64 is ~33% larger than original)
+      if (base64Image.length > maxSize) {
+        throw new Error('Image size too large. Maximum 2MB allowed.');
+      }
+*/
+      // Update user record with base64 image
+      console.log(base64Image);
+      await this.UtilisateurRepository.update(id, {
+        image: base64Image, // Store base64 string directly in database
+      });
+
+      // Return updated user
+      const user = await this.UtilisateurRepository.findOne({
+        where: { id, deletedAt: null },
+      });
+      return user;
+    } catch (error) {
+      throw new Error(`Failed to update profile image: ${error.message}`);
+    }
+  }
 }

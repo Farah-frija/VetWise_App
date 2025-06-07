@@ -57,18 +57,15 @@ export default function OwnerDashboard() {
   // Fetch pets
   useEffect(() => {
     const fetchPets = async () => {
-      if (!user || !user.utilisateur_id) {
+      if (!user || !user.id) {
         setPetsLoading(false);
         return;
       }
-      console.log("Fetching pets for user:", user.utilisateur_id);
+      console.log("Fetching pets for user:", user.id);
       try {
-        const response = await request(
-          `/animal/mypets/${user.utilisateur_id}`,
-          {
-            method: "GET",
-          }
-        );
+        const response = await request(`/animal/mypets/${user.id}`, {
+          method: "GET",
+        });
         const data = await response.json();
         setPets(data);
       } catch (error) {
@@ -103,13 +100,13 @@ export default function OwnerDashboard() {
   // Fetch appointments (commented out)
   /*useEffect(() => {
     const fetchAppointments = async () => {
-      if (!user || !user.utilisateur_id) {
+      if (!user || !user.id) {
         setAppointmentsLoading(false);
         return;
       }
       try {
         const response = await request(
-          `/appointments/upcoming/${user.utilisateur_id}`,
+          `/appointments/upcoming/${user.id}`,
           {
             method: "GET",
           }

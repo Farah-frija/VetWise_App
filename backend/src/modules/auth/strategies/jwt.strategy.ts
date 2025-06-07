@@ -30,7 +30,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     return {
-      utilisateur_id: user.id,
+      id: user.id,
       email: user.email,
       role: user.role,
       nom: user.nom,
@@ -38,4 +38,3 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     };
   }
 }
-//dealing with expiration of access token cote client
