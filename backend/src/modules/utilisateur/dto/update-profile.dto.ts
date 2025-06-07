@@ -7,19 +7,16 @@ import {
 } from 'class-validator';
 
 export class UpdateProfileDto {
-  @IsOptional()
   @IsString()
   @Length(1, 50)
-  nom?: string;
+  nom: string;
 
-  @IsOptional()
   @IsString()
   @Length(1, 50)
-  prenom?: string;
+  prenom: string;
 
-  @IsOptional()
   @IsEmail()
-  email?: string;
+  email: string;
 
   @IsOptional()
   @IsString()
@@ -30,4 +27,14 @@ export class UpdateProfileDto {
   @IsString()
   @Length(0, 200)
   adresse?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 100)
+  specialities?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 50)
+  numlicence?: string;
 }
