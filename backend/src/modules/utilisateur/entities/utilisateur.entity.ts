@@ -4,9 +4,7 @@ import { BaseEntity } from '../../../common/entities/base.entity';
 import { UserRole } from '../../../common/enums/roles.enum';
 import { Conversation } from '../../Chat/Entities/conversation.entity';
 import { MeetingSession } from '../../Chat/Entities/MeetingSession.entity';
-import { Message } from  '../../Chat/Entities/message.entity';
-
-
+import { Message } from '../../Chat/Entities/message.entity';
 
 @Entity('utilisateur')
 @TableInheritance({ column: { type: 'varchar', name: 'type' } })
@@ -35,6 +33,9 @@ export class Utilisateur extends BaseEntity {
 
   @Column({ nullable: true })
   adresse: string;
+
+  @Column({ nullable: true })
+  image: string;
 
   @Column({ default: false })
   estVerifie: boolean;
