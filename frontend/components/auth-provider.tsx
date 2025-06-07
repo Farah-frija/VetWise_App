@@ -14,7 +14,7 @@ export enum UserRole {
 }
 
 type User = {
-  utilisateur_id: number;
+  id: number;
   email: string;
   role: UserRole;
   nom: string;
@@ -54,6 +54,8 @@ type AuthContextType = {
   logout: () => void;
   isLoading: boolean;
   refreshToken: () => Promise<boolean>;
+  getStoredToken: () => string | null;
+  getStoredUser: () => User | null;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -64,7 +66,7 @@ const TOKEN_KEY = "auth_token";
 const REFRESH_TOKEN_KEY = "refresh_token";
 const USER_KEY = "user_data";
 
-const getStoredToken = (): string | null => {
+export const getStoredToken = (): string | null => {
   //it prevents any server logic (local_storage) from executing on a browser environment
   if (typeof window === "undefined") return null;
   const tokenData = localStorage.getItem(TOKEN_KEY);
@@ -81,7 +83,7 @@ const getStoredRefreshToken = (): string | null => {
   return tokenData;
 };
 
-const getStoredUser = (): User | null => {
+export const getStoredUser = (): User | null => {
   if (typeof window === "undefined") return null;
   const userData = localStorage.getItem(USER_KEY);
   if (!userData || userData === "undefined") return null;
@@ -347,6 +349,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         isLoading,
         refreshToken,
+        getStoredToken,
+  getStoredUser
       }}
     >
       {children}
