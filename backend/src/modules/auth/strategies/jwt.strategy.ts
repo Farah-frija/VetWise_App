@@ -17,10 +17,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('JWT_SECRET'),
     });
-    //this.config = configService.get('jwt');
   }
 
   async validate(payload: any) {
+    console.log(payload);
     const user = await this.usersService.findOne(payload.sub);
 
     if (!user || !user.isActive) {
@@ -28,7 +28,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         "L'utilisateur n'existe pas ou est désactivé",
       );
     }
-
     return {
       id: user.id,
       email: user.email,
