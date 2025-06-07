@@ -10,6 +10,9 @@ import {
   UseGuards,
   Put,
   BadRequestException,
+  UseInterceptors,
+  UploadedFile,
+  Post,
 } from '@nestjs/common';
 import { UtilisateurService } from './utilisateur.service';
 import { ApiTags } from '@nestjs/swagger';
@@ -18,7 +21,8 @@ import { UserRole } from 'src/common/enums/roles.enum';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { AuthGuard } from '@nestjs/passport';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { UpdateImageDto } from './dto/update-image.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerConfig } from '../../config/multer.config';
 
 ApiTags('utilisateurs');
 @Controller('utilisateurs')
@@ -74,34 +78,43 @@ export class UtilisateurController {
         data: updatedProfile,
       };
     } catch (error) {
-      throw new BadRequestException('Failed to update profile');
+      console.error('Profile update error:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Failed to update profile: ${error.message}`,
+      );
     }
   }
 
-  @UseGuards(AuthGuard('jwt'))
-  @Put('update-image/:id')
-  async updateProfileImage(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() imageDto: UpdateImageDto,
+  @Post('update-image/:id')
+  @UseInterceptors(FileInterceptor('image', multerConfig))
+  async uploadProfileImage(
+    @Param('id', ParseIntPipe) userId: number,
+    @UploadedFile() imageFile: Express.Multer.File,
   ) {
-    if (!imageDto.image) {
-      throw new BadRequestException('No image data provided');
-    }
-
     try {
-      const result = await this.utilisateurService.updateProfileImage(
-        id,
-        imageDto.image,
-      );
-      if (!result) {
-        throw new NotFoundException('User not found');
+      if (!imageFile) {
+        throw new BadRequestException('No image file provided');
       }
+
+      const result = await this.utilisateurService.updateProfileImage(
+        userId,
+        imageFile,
+      );
       return {
         message: 'Profile image updated successfully',
         data: result,
       };
     } catch (error) {
-      throw new BadRequestException('Failed to update profile image');
+      console.error('Image upload error:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Failed to update profile image: ${error.message}`,
+      );
     }
   }
 }

@@ -81,14 +81,8 @@ export default function OwnerProfile() {
           telephone: userData.telephone || "",
           adresse: userData.adresse || "",
         });
-
-        // Handle profile image from the same response
         if (userData.image) {
-          // Check if base64 already has data URL prefix
-          const imageUrl = userData.image.startsWith("data:")
-            ? userData.image
-            : `data:image/jpeg;base64,${userData.image}`;
-          setProfileImage(imageUrl);
+          setProfileImage(userData.image);
         } else {
           setProfileImage(null);
         }
@@ -100,13 +94,11 @@ export default function OwnerProfile() {
     }
   };
 
-  // Replace your handleSave function with this corrected version
   const handleSave = async () => {
     if (!user) return;
 
     setIsLoading(true);
     try {
-      // Update profile data
       const updateResponse = await request(
         `/utilisateurs/update-profile/${user.id}`,
         {
@@ -118,20 +110,15 @@ export default function OwnerProfile() {
       if (!updateResponse.ok) {
         throw new Error("Failed to update profile");
       }
-
-      // Upload profile image if selected
       if (imageFile) {
-        // Convert file to base64
-        const base64Image = await convertFileToBase64(imageFile);
+        const formData = new FormData();
+        formData.append("image", imageFile);
 
         const imageResponse = await request(
           `/utilisateurs/update-image/${user.id}`,
           {
-            method: "PUT",
-            body: JSON.stringify({ image: base64Image }), // Send as JSON, not FormData
-            headers: {
-              "Content-Type": "application/json", // Ensure JSON content type
-            },
+            method: "POST",
+            body: formData,
           }
         );
 
@@ -147,28 +134,10 @@ export default function OwnerProfile() {
       setIsEditing(false);
     } catch (error) {
       console.error("Failed to update profile:", error);
-      alert("Failed to update profile. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
-
-  // Add this helper function to convert File to base64
-  const convertFileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === "string") {
-          resolve(reader.result); // This will be in format: "data:image/jpeg;base64,..."
-        } else {
-          reject(new Error("Failed to convert file to base64"));
-        }
-      };
-      reader.onerror = () => reject(new Error("File reading failed"));
-      reader.readAsDataURL(file);
-    });
-  };
-
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {

@@ -112,11 +112,12 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
   const token = getStoredToken();
   console.log(token);
   console.log(getStoredUser);
+  const isFormData = options.body instanceof FormData;
 
   const config: RequestInit = {
     ...options, //specify method
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...(token && { Authorization: `Bearer ${token}` }),
       ...options.headers,
     },
@@ -350,7 +351,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading,
         refreshToken,
         getStoredToken,
-  getStoredUser
+        getStoredUser,
       }}
     >
       {children}

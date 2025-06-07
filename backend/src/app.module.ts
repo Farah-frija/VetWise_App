@@ -22,20 +22,18 @@ import {
 import { RendezvousModule } from './modules/rendezvous/rendezvous.module';
 import { ConsultationModule } from './modules/consultation/consultation.module';
 import { ChatModule } from './modules/Chat/chat.module';
+import { FilesModule } from './modules/files/files.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig, jwtConfig, mailConfig,FlouciConfig],
-    
+      load: [databaseConfig, jwtConfig, mailConfig, FlouciConfig],
     }),
     TypeOrmModule.forRootAsync({
-      
       useFactory: async () => ({
         ...AppDataSource.options,
       }),
-      
     }),
     UtilisateurModule,
     AnimalModule,
@@ -48,7 +46,8 @@ import { ChatModule } from './modules/Chat/chat.module';
     RendezvousModule,
     ConsultationModule,
     ChatModule,
-    PaiementModule
+    PaiementModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

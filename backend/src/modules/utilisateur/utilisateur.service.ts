@@ -15,6 +15,7 @@ import { MailService } from '../mail/mail.service';
 import { UserRole } from '../../common/enums/roles.enum';
 import { ProprietaireAnimal } from './entities/proprietaire-animal.entity';
 import { Veterinaire } from './entities/veterinaire.entity';
+import { FilesService } from '../files/files.service';
 @Injectable()
 export class UtilisateurService extends GenericService<Utilisateur> {
   constructor(
@@ -22,6 +23,7 @@ export class UtilisateurService extends GenericService<Utilisateur> {
     private readonly UtilisateurRepository: Repository<Utilisateur>,
     private readonly dataSource: DataSource,
     private readonly mailService: MailService,
+    private readonly filesService: FilesService,
   ) {
     super(UtilisateurRepository);
   }
@@ -188,50 +190,72 @@ export class UtilisateurService extends GenericService<Utilisateur> {
 
   async updateProfile(id: number, updateData: any) {
     try {
+      // First check if user exists
       const user = await this.UtilisateurRepository.findOne({
         where: { id, deletedAt: null },
       });
+
       if (!user) {
         throw new NotFoundException('User not found');
       }
 
-      await this.UtilisateurRepository.update(id, updateData);
+      // Perform the update
+      const updateResult = await this.UtilisateurRepository.update(
+        id,
+        updateData,
+      );
 
+      // Check if update was successful
+      if (updateResult.affected === 0) {
+        throw new Error('No rows were updated');
+      }
+
+      // Return the updated user
       const updatedUser = await this.UtilisateurRepository.findOne({
         where: { id, deletedAt: null },
       });
+
       return updatedUser;
     } catch (error) {
-      throw new Error(`Failed to update profile: ${error.message}`);
+      console.error(`Profile update error for user ${id}:`, error);
+      throw error; // Re-throw to maintain error type
     }
   }
 
-  async updateProfileImage(id: number, base64Image: string) {
+  async updateProfileImage(userId: number, imageFile: Express.Multer.File) {
     try {
-      // Validate base64 image format
-      if (!base64Image.startsWith('data:image/')) {
-        throw new Error('Invalid image format. Must be base64 encoded image.');
+      // Validate input
+      if (!imageFile) {
+        throw new BadRequestException('No image file provided');
       }
-      /*
-      // Optional: Add size validation for base64 string
-      const maxSize = 2 * 1024 * 1024; // 2MB in bytes (base64 is ~33% larger than original)
-      if (base64Image.length > maxSize) {
-        throw new Error('Image size too large. Maximum 2MB allowed.');
-      }
-*/
-      // Update user record with base64 image
-      console.log(base64Image);
-      await this.UtilisateurRepository.update(id, {
-        image: base64Image, // Store base64 string directly in database
+
+      // Check if user exists
+      const user = await this.UtilisateurRepository.findOne({
+        where: { id: userId, deletedAt: null },
       });
 
-      // Return updated user
-      const user = await this.UtilisateurRepository.findOne({
-        where: { id, deletedAt: null },
-      });
-      return user;
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      // Save the image file
+      const filename = await this.filesService.saveProfileImage(
+        userId,
+        imageFile,
+      );
+
+      if (!filename) {
+        throw new Error('Failed to save image file');
+      }
+
+      // Update user with new image filename
+      user.image = filename;
+      const savedUser = await this.UtilisateurRepository.save(user);
+
+      return savedUser;
     } catch (error) {
-      throw new Error(`Failed to update profile image: ${error.message}`);
+      console.error(`Image update error for user ${userId}:`, error);
+      throw error; // Re-throw to maintain error type
     }
   }
 }

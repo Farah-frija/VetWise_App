@@ -69,7 +69,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('two-factor/setup')
   async setupTwoFactor(@Request() req) {
-    return this.authService.setupTwoFactor(req.user.utilisateur_id);
+    return this.authService.setupTwoFactor(req.user.id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -77,7 +77,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async enableTwoFactor(@Request() req, @Body() twoFactorDto: TwoFactorDto) {
     const isValid = await this.authService.verifyTwoFactorCode(
-      req.user.utilisateur_id,
+      req.user.id,
       twoFactorDto.code,
     );
 
@@ -85,7 +85,7 @@ export class AuthController {
       return { success: false, message: 'Code invalide' };
     }
 
-    await this.authService.enableTwoFactor(req.user.utilisateur_id);
+    await this.authService.enableTwoFactor(req.user.id);
     return {
       success: true,
       message: 'Authentification à deux facteurs activée',
@@ -96,7 +96,7 @@ export class AuthController {
   @Post('two-factor/disable')
   @HttpCode(HttpStatus.OK)
   async disableTwoFactor(@Request() req) {
-    await this.authService.disableTwoFactor(req.user.utilisateur_id);
+    await this.authService.disableTwoFactor(req.user.id);
     return {
       success: true,
       message: 'Authentification à deux facteurs désactivée',
@@ -120,15 +120,16 @@ export class AuthController {
     }
     return (result = await this.userService.verifyEmail(token));
   }
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Post('change-password')
   @HttpCode(HttpStatus.OK)
   async changePassword(
     @Request() req,
     @Body() changePasswordDto: ChangePasswordDto,
   ) {
+    console.log(req.user);
     await this.authService.changePassword(
-      req.user.utilisateur_id,
+      req.user.id,
       changePasswordDto.currentPassword,
       changePasswordDto.newPassword,
     );

@@ -57,12 +57,12 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UnauthorizedException('Identifiants incorrects');
     }
-
     const { motDePasse, ...result } = user;
     return result;
   }
 
   async login(loginDto: LoginDto) {
+    console.log(loginDto);
     const user = await this.validateUser(loginDto.email, loginDto.motDePasse);
     if (user.twoFactorEnabled && !loginDto.twoFactorSecret) {
       throw new UnauthorizedException(
@@ -172,6 +172,8 @@ export class AuthService {
     currentPassword: string,
     newPassword: string,
   ): Promise<void> {
+    console.log("Changement de mot de passe pour l'utilisateur:", userId);
+    console.log(currentPassword, newPassword);
     const user = await this.usersService.findOne(userId);
 
     if (!user) {
