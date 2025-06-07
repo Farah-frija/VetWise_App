@@ -1,7 +1,8 @@
-import { Controller, Post, Param, Body } from '@nestjs/common';
+import { Controller, Post, Param, Body, HttpStatus, HttpException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
 import { PaiementService } from './services/Paiement.service';
 import { CreatePaiementDto, PaymentStatusResponse } from './dtos/RequestDto';
+import { RendezvousCheckDto, RendezvousCheckResponseDto } from './dtos/RendezVusCheckResponseDto';
 
 @ApiTags('Payments')
 @Controller('payments')
@@ -54,5 +55,36 @@ export class PaiementController {
   })
   async markFailed(@Param('id') paymentId: string) {
     return this.paiementService.markPaymentFailed(paymentId);
+  }
+  @Post('check-rendezvous')
+  @ApiOperation({ 
+    summary: 'Check rendezvous status',
+    description: 'Verifies if a rendezvous is active (has valid payment and within time window)' 
+  })
+  @ApiBody({ type: RendezvousCheckDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Rendezvous is active and valid',
+    type: RendezvousCheckResponseDto
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Rendezvous is not active (payment incomplete or time window expired)',
+    type: RendezvousCheckResponseDto
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Conversation not found'
+  })
+  async checkRendezvousStatus(
+    @Body() rendezvousCheckDto: RendezvousCheckDto
+  ): Promise<RendezvousCheckResponseDto > {
+    const result = await this.paiementService.checkRendezvousStatus(rendezvousCheckDto.conversationId);
+    
+    if (result.status === 'success') {
+      return result;
+    } else {
+      throw new HttpException(result, HttpStatus.BAD_REQUEST);
+    }
   }
 }
