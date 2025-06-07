@@ -20,5 +20,6 @@ import { MeetingHistoryController } from './controllers/MeetingSession.controlle
      ],
   controllers: [ChatController,MessageController,ConversationController,MeetingHistoryController],
   providers: [MessageService,ConversationService,MeetingHistoryService],
+  exports:[ConversationService]
 })
 export class ChatModule {}

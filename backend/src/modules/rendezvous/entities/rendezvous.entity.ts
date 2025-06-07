@@ -5,12 +5,14 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  OneToOne
 } from 'typeorm';
 import { RendezvousAnimal } from './rendezvous-animal.entity';
 import { BaseEntity } from '../../../common/entities/base.entity';
 import { Utilisateur } from '../../utilisateur/entities/utilisateur.entity';
 import { Consultation } from '../../consultation/entities/consultation.entity';
 import { RendezvousStatus } from '../../../common/enums/rendezvous-status.enum';
+import { Paiement } from '../../Paiement/entities/Paiement.entity';
 
 @Entity('rendezvous')
 export class Rendezvous extends BaseEntity {
@@ -49,4 +51,9 @@ export class Rendezvous extends BaseEntity {
 
   @OneToMany(() => Consultation, (consultation) => consultation.rendezvous)
   consultations: Consultation[];
+  @OneToMany(() => Paiement, (paiement) => paiement.rendezvous)
+  paiements: Paiement[];
+  @OneToOne(() => Paiement, { nullable: true })
+  @JoinColumn({ name: 'lastSuccessfulPaiementId' })
+  lastSuccessfulPaiement: Paiement | null;
 }

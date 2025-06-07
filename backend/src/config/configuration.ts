@@ -58,3 +58,14 @@ export const AppDataSource = new DataSource({
 // npm run migration:generate -- src/migrations/migration_name
 //éxecuter migration
 // npm run migration:run
+export const FlouciConfig =  registerAs('flouci', () => ({
+ 
+      apiUrl: process.env.FLUOCI_API_URL,
+      appToken: process.env.FLUOCI_APP_TOKEN,
+      appSecret: process.env.FLUOCI_APP_SECRET,
+      successUrl: process.env.PAYMENT_SUCCESS_URL,
+      failUrl: process.env.PAYMENT_FAIL_URL,
+      sessionTimeout: parseInt(process.env.PAYMENT_SESSION_TIMEOUT || '1200', 10),
+      DEVELOPER_TRACKING_ID:process.env.DEVELOPER_TRACKING_ID
+  // You can keep other configs here or split them into separate files
+}));

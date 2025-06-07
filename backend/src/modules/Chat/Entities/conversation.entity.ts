@@ -1,9 +1,11 @@
 
 
-import { Entity, PrimaryGeneratedColumn, ManyToOne, OneToMany, CreateDateColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, ManyToOne, OneToMany, CreateDateColumn, Column ,OneToOne,JoinColumn} from 'typeorm';
 import { Message } from './message.entity';
 import { MeetingSession } from './MeetingSession.entity';
+import { Paiement } from '../../Paiement/entities/Paiement.entity'
 import { Utilisateur } from '../../utilisateur/entities/utilisateur.entity';
+
 
 @Entity('conversation')
 export class Conversation {
@@ -28,4 +30,6 @@ export class Conversation {
 
   @OneToMany(() => MeetingSession, (session) => session.conversation)
   meetings: MeetingSession[];
+
+ 
 }

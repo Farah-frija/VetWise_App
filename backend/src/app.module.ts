@@ -10,10 +10,11 @@ import { AuthModule } from './modules/auth/auth.module';
 import { MailModule } from './modules/mail/mail.module';
 import { DossierMedicalModule } from './modules/dossier-medical/dossier-medical.module';
 import { DisponibiliteModule } from './modules/disponibilite/disponibilite.module';
-
+import { PaiementModule } from './modules/Paiement/paiement.module';
 import {
   AppDataSource,
   databaseConfig,
+  FlouciConfig,
   jwtConfig,
   mailConfig,
 } from './config/configuration';
@@ -21,11 +22,12 @@ import {
 import { RendezvousModule } from './modules/rendezvous/rendezvous.module';
 import { ConsultationModule } from './modules/consultation/consultation.module';
 import { ChatModule } from './modules/Chat/chat.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig, jwtConfig, mailConfig],
+      load: [databaseConfig, jwtConfig, mailConfig,FlouciConfig],
     
     }),
     TypeOrmModule.forRootAsync({
@@ -45,7 +47,8 @@ import { ChatModule } from './modules/Chat/chat.module';
     DisponibiliteModule,
     RendezvousModule,
     ConsultationModule,
-    ChatModule
+    ChatModule,
+    PaiementModule
   ],
   controllers: [AppController],
   providers: [AppService],
