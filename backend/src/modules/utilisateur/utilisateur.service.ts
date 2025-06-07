@@ -151,4 +151,10 @@ export class UtilisateurService extends GenericService<Utilisateur> {
 
     await this.UtilisateurRepository.update(userId, { lastLogin: new Date() });
   }
+
+  async getAllVets(): Promise<Veterinaire[]> {
+    return this.UtilisateurRepository.find({
+      where: { role: UserRole.VETERINARIAN, deletedAt: null },
+    }) as Promise<Veterinaire[]>;
+  }
 }

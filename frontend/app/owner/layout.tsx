@@ -1,13 +1,22 @@
-"use client"
-
-import type React from "react"
-import { useAuth } from "@/components/auth-provider"
-import { useRouter } from "next/navigation"
-import { useEffect } from "react"
-import Link from "next/link"
-import { Cat, Home, Heart, Calendar, MessageCircle, User, LogOut, Search, Bell } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+"use client";
+import type React from "react";
+import { useAuth, UserRole } from "@/components/auth-provider"; // Import UserRole
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import Link from "next/link";
+import {
+  Cat,
+  Home,
+  Heart,
+  Calendar,
+  MessageCircle,
+  User,
+  LogOut,
+  Search,
+  Bell,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Sidebar,
   SidebarContent,
@@ -22,8 +31,8 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
-import { Suspense } from "react"
+} from "@/components/ui/sidebar";
+import { Suspense } from "react";
 
 const menuItems = [
   {
@@ -51,15 +60,18 @@ const menuItems = [
     url: "/owner/profile",
     icon: User,
   },
-]
+];
 
 function AppSidebar() {
-  const { user, logout } = useAuth()
+  const { user, logout } = useAuth();
 
   return (
     <Sidebar>
       <SidebarHeader>
-        <Link href="/owner/dashboard" className="flex items-center space-x-2 px-2 py-1">
+        <Link
+          href="/owner/dashboard"
+          className="flex items-center space-x-2 px-2 py-1"
+        >
           <Cat className="h-8 w-8 text-violet-600" />
           <span className="text-2xl font-bold text-violet-600">VetCat</span>
         </Link>
@@ -94,25 +106,47 @@ function AppSidebar() {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }
 
 export default function OwnerLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const { user } = useAuth()
-  const router = useRouter()
+  const { user, token, isLoading } = useAuth(); // Add token and isLoading
+  const router = useRouter();
 
   useEffect(() => {
-    if (!user || user.role !== "owner") {
-      router.push("/login")
-    }
-  }, [user, router])
+    // Don't redirect while still loading
+    if (isLoading) return;
 
-  if (!user || user.role !== "owner") {
-    return null
+    // Check if user is authenticated and has correct role
+    if (!user || !token || user.role !== UserRole.PET_OWNER) {
+      console.log(
+        "Redirecting to login - user:",
+        user,
+        "token:",
+        !!token,
+        "role:",
+        user?.role
+      );
+      router.push("/login");
+    }
+  }, [user, token, isLoading, router]); // Add token and isLoading to dependencies
+
+  // Show loading state while auth is loading
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-600"></div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated or wrong role
+  if (!user || !token || user.role !== UserRole.PET_OWNER) {
+    return null;
   }
 
   return (
@@ -129,7 +163,10 @@ export default function OwnerLayout({
             <Button variant="ghost" size="sm">
               <Bell className="h-4 w-4" />
             </Button>
-            <div className="text-sm text-gray-600">Welcome, {user.name}</div>
+            {/* Fix: Use prenom instead of name */}
+            <div className="text-sm text-gray-600">
+              Welcome, {user.prenom} {user.nom}
+            </div>
           </div>
         </header>
         <main className="flex-1 overflow-auto p-6">
@@ -137,5 +174,5 @@ export default function OwnerLayout({
         </main>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }

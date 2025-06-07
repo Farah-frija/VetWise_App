@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react";
 
-enum UserRole {
+export enum UserRole {
   ADMIN = "ADMINISTRATEUR",
   PET_OWNER = "PROPRIETAIRE_ANIMAL",
   VETERINARIAN = "VETERINAIRE",
@@ -108,6 +108,8 @@ const clearAuthData = () => {
 
 const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
   const token = getStoredToken();
+  console.log(token);
+  console.log(getStoredUser);
 
   const config: RequestInit = {
     ...options, //specify method
@@ -187,8 +189,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, motDePasse: string): Promise<boolean> => {
     try {
       setIsLoading(true);
-      console.log("Attempting login with email:", email);
-      console.log("Login request body:", { email, motDePasse });
 
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
@@ -197,16 +197,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
         body: JSON.stringify({ email, motDePasse }),
       });
-      console.log("Login response:", response);
       if (!response.ok) {
         throw new Error("Login failed");
       }
       const authResponse: AuthResponse = await response.json();
       storeAuthData(authResponse);
       setUser(authResponse.user);
-      console.log("User data:", user);
       setToken(authResponse.access_token);
-      console.log("Login successful, response", authResponse);
       return true;
     } catch (error) {
       console.error("Login error:", error);
