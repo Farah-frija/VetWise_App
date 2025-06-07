@@ -1,5 +1,5 @@
 // src/modules/disponibilite/disponibilite.controller.ts
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { DisponibiliteService } from './disponibilite.service';
 import { CreateDisponibiliteDto } from './dto/create-disponibilite.dto';
 import { UpdateDisponibiliteDto } from './dto/update-disponibilite.dto';

@@ -69,6 +69,11 @@ const menuItems = [
     url: "/vet/profile",
     icon: User,
   },
+    {
+    title: "Disponibilités",
+    url: "/vet/disponibilite",
+    icon: User,
+  },
 ];
 
 function AppSidebar() {
