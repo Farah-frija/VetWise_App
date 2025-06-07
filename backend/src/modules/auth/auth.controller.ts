@@ -120,14 +120,13 @@ export class AuthController {
     }
     return (result = await this.userService.verifyEmail(token));
   }
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('change-password')
   @HttpCode(HttpStatus.OK)
   async changePassword(
     @Request() req,
     @Body() changePasswordDto: ChangePasswordDto,
   ) {
-    console.log(req.user);
     await this.authService.changePassword(
       req.user.id,
       changePasswordDto.currentPassword,
