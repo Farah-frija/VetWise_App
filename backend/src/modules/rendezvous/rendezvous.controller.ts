@@ -13,7 +13,7 @@ import { CreateRendezvousDto } from './dto/create-rendezvous.dto';
 import { UpdateRendezvousDto } from './dto/update-rendezvous.dto';
 import { ApiTags } from '@nestjs/swagger';
 
-@ApiTags('Rendezvous') 
+@ApiTags('Rendezvous')
 @Controller('rendezvous')
 export class RendezvousController {
   constructor(private readonly rendezvousService: RendezvousService) {}
@@ -57,27 +57,24 @@ export class RendezvousController {
     @Param('id', ParseIntPipe) rendezvousId: number,
     @Param('animalId', ParseIntPipe) animalId: number,
   ) {
-    return this.rendezvousService.addAnimalToRendezvous(
-      rendezvousId,
-      animalId,
-    );
+    return this.rendezvousService.addAnimalToRendezvous(rendezvousId, animalId);
   }
 
   @Patch(':id/cancel')
-cancelRendezvous(@Param('id', ParseIntPipe) id: number) {
-  return this.rendezvousService.cancelRendezvous(id);
-}
+  cancelRendezvous(@Param('id', ParseIntPipe) id: number) {
+    return this.rendezvousService.cancelRendezvous(id);
+  }
 
-@Patch(':id/confirm')
-confirmRendezvous(@Param('id', ParseIntPipe) id: number) {
-  return this.rendezvousService.confirmRendezvous(id);
-}
-@Get('creneaux-disponibles/:veterinaireId/:date')
-getCreneauxDisponibles(
-  @Param('veterinaireId', ParseIntPipe) veterinaireId: number,
-  @Param('date') date: string,
-) {
-  return this.rendezvousService.getCreneauxDisponibles(date, veterinaireId);
-}
-
+  @Patch(':id/confirm')
+  confirmRendezvous(@Param('id', ParseIntPipe) id: number) {
+    return this.rendezvousService.confirmRendezvous(id);
+  }
+  @Get('creneaux-disponibles/:veterinaireId/:date')
+  getCreneauxDisponibles(
+    @Param('veterinaireId', ParseIntPipe) veterinaireId: number,
+    @Param('date') date: string,
+  ) {
+    return this.rendezvousService.getCreneauxDisponibles(date, veterinaireId);
+  }
+  //add method to retrive upcoming rendez vous of an owner please
 }

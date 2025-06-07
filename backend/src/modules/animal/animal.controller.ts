@@ -1,10 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { AnimalService } from './animal.service';
 import { CreateAnimalDto } from './dto/create-animal.dto';
 import { UpdateAnimalDto } from './dto/update-animal.dto';
 import { ApiTags } from '@nestjs/swagger';
 
-@ApiTags('animal') 
+@ApiTags('animal')
 @Controller('animal')
 export class AnimalController {
   constructor(private readonly animalService: AnimalService) {}
@@ -18,8 +26,8 @@ export class AnimalController {
   findAll() {
     return this.animalService.findAll();
   }
-  @Get("/:propId")
-  findByProprietaire(@Param('propId') id:string) {
+  @Get('mypets/:propId')
+  findByProprietaire(@Param('propId') id: string) {
     return this.animalService.findByProprietaire(+id);
   }
   @Get(':id')

@@ -35,6 +35,9 @@ export class AuthService {
   }
 
   async validateUser(email: string, password: string): Promise<any> {
+    if (!email || !password) {
+      throw new BadRequestException('Email et mot de passe sont requis');
+    }
     const user = await this.usersService.findByEmail(email);
     if (!user) {
       throw new UnauthorizedException('Identifiants incorrects');
@@ -44,6 +47,11 @@ export class AuthService {
     }
     if (!user.estVerifie) {
       throw new ForbiddenException('Compte non vérifié');
+    }
+    if (!user.motDePasse) {
+      throw new UnauthorizedException(
+        'Aucun mot de passe défini pour cet utilisateur',
+      );
     }
     const isPasswordValid = await bcrypt.compare(password, user.motDePasse);
     if (!isPasswordValid) {
@@ -56,7 +64,6 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     const user = await this.validateUser(loginDto.email, loginDto.motDePasse);
-
     if (user.twoFactorEnabled && !loginDto.twoFactorSecret) {
       throw new UnauthorizedException(
         "L'authentification à deux facteurs est requise pour cet utilisateur",
