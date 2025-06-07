@@ -6,6 +6,7 @@ export class RendezvousCheckResponseDto {
     endTime?: string;        // ISO string of when it ends (1 hour after start)
     currentTime?: string;    // ISO string of current server time
     timeRemaining?: number;  // Milliseconds remaining until end
+    conversationId?:string
   }
   // rendezvous-check.dto.ts
   import { ApiProperty } from '@nestjs/swagger';

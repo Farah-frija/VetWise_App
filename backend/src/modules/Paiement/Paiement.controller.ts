@@ -1,4 +1,4 @@
-import { Controller, Post, Param, Body, HttpStatus, HttpException } from '@nestjs/common';
+import { Controller, Post, Param, Body, HttpStatus, HttpException ,Get} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
 import { PaiementService } from './services/Paiement.service';
 import { CreatePaiementDto, PaymentStatusResponse } from './dtos/RequestDto';
@@ -86,5 +86,35 @@ export class PaiementController {
     } else {
       throw new HttpException(result, HttpStatus.BAD_REQUEST);
     }
+  }
+  
+  @Get(':userId/active-rendezvous')
+  @ApiOperation({
+    summary: 'Check for active rendezvous in user conversations',
+    description: 'Finds the first conversation with an active rendezvous (within 1-hour window after start) for the specified user'
+  })
+  @ApiParam({
+    name: 'userId',
+    description: 'ID of the user to check conversations for',
+    example: 1,
+    type: Number
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Active rendezvous found',
+    type: RendezvousCheckResponseDto
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'No conversations found for this user'
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'No active rendezvous found in any conversation'
+  })
+  async checkActiveConversation(
+    @Param('userId') userId: number
+  ): Promise<RendezvousCheckResponseDto> {
+    return this.paiementService.checkActiveConversationOFOneUser(userId);
   }
 }

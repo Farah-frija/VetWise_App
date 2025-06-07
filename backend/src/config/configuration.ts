@@ -49,7 +49,7 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   entities: [__dirname + '/../modules/**/entities/*.entity{.ts,.js}'],
-  synchronize: false,
+  synchronize: true,
   driver: require('pg'),
   migrations: [__dirname + '/../migrations/*{.ts,.js}'],
 });
