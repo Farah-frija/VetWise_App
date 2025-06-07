@@ -41,9 +41,9 @@ export class RegisterDto {
   @IsOptional()
   adresse?: string;
 
-  @IsOptional()
+  /*@IsOptional()
   @ValidateIf((o) => o.role === UserRole.PET_OWNER)
-  petTypePreference?: string;
+  petTypePreference?: string;*/
 
   @IsString()
   @IsOptional()

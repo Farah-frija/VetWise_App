@@ -41,17 +41,16 @@ export const mailConfig = registerAs('mail', () => ({
   APP_URL: process.env.APP_URL,
   APP_NAME: process.env.APP_NAME,
 }));
-// TypeORM DataSource (for migrations and direct connection)
 export const AppDataSource = new DataSource({
-  type: 'postgres', // Changed from 'mysql' to 'postgres'
+  type: 'mysql',
   host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT) || 5432, // Default PostgreSQL port
+  port: Number(process.env.DB_PORT),
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   entities: [__dirname + '/../modules/**/entities/*.entity{.ts,.js}'],
-  synchronize: true,
-  // Removed driver specification (not needed for PostgreSQL)
+  synchronize: false,
+  driver: require('mysql2'),
   migrations: [__dirname + '/../migrations/*{.ts,.js}'],
 });
 //générer une migration
