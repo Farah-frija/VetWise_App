@@ -44,7 +44,13 @@ export class AuthController {
   @Public()
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+    const user = await this.authService.register(registerDto);
+    return {
+      success: true,
+      message:
+        'Registration successful, please check your email to verify your account.',
+      user,
+    };
   }
   @Public()
   @Post('refresh')
