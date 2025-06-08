@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Suspense } from "react";
 import { useState } from "react";
+import { useProfile } from "@/components/profile-profider";
 
 const menuItems = [
   {
@@ -156,12 +157,7 @@ function ProfileImage({
       return imageSrc;
     }
 
-    // If it looks like base64 but missing data URL prefix
-    if (imageSrc.includes("/") && !imageSrc.startsWith("data:")) {
-      // Assume it's a base64 string, add data URL prefix
-      return `data:image/jpeg;base64,${imageSrc}`;
-    }
-
+    // If it's a file path, return as is (the backend should serve it properly)
     return imageSrc;
   };
 
@@ -184,54 +180,43 @@ export default function OwnerLayout({
   const { user, token, isLoading } = useAuth(); // Add token and isLoading
   const router = useRouter();
   const { request } = useApiRequest();
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const { profileImage, setProfileImage, profileVersion } = useProfile();
   const [profileLoading, setProfileLoading] = useState(true);
 
-  // Fetch profile image
+  // Load user profile data
   useEffect(() => {
-    const fetchProfileImage = async () => {
-      if (!user || !user.id || !token) {
+    const loadUserProfile = async () => {
+      if (!user || !token) {
         setProfileLoading(false);
         return;
       }
 
       try {
-        const response = await request(`/utilisateurs/image/${user.id}`, {
-          method: "GET",
-        });
+        const response: Response = await request(
+          `/utilisateurs/profile/${user.id}`,
+          {
+            method: "GET",
+          }
+        );
 
         if (response.ok) {
-          const data = await response.json();
-          // Handle different response formats
-          if (data.image) {
-            // If the response has an image field
-            setProfileImage(data.image);
-          } else if (data.imageUrl) {
-            // If the response has an imageUrl field
-            setProfileImage(data.imageUrl);
-          } else if (typeof data === "string") {
-            // If the response is directly a string
-            setProfileImage(data);
+          const userData = await response.json();
+          if (userData.image) {
+            setProfileImage(userData.image);
           } else {
-            console.log("No image data found in response");
             setProfileImage(null);
           }
-        } else {
-          console.log("Profile image response not ok:", response.status);
-          setProfileImage(null);
         }
       } catch (error) {
-        console.error("Failed to fetch profile image:", error);
+        console.error("Failed to load user profile:", error);
         setProfileImage(null);
       } finally {
         setProfileLoading(false);
       }
     };
 
-    if (user && token && !isLoading) {
-      fetchProfileImage();
-    }
-  }, [request, user, token, isLoading]);
+    loadUserProfile();
+  }, [user, token, request, profileVersion]); // Add profileVersion as dependency
 
   useEffect(() => {
     // Don't redirect while still loading

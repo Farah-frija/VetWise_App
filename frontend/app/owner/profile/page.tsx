@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { User, Edit, Save, Camera, Lock, Upload, X } from "lucide-react";
 import { useAuth, useApiRequest } from "@/components/auth-provider";
+import { useProfile } from "@/components/profile-profider";
 
 interface ChangePasswordData {
   currentPassword: string;
@@ -32,12 +33,12 @@ interface ChangePasswordData {
 export default function OwnerProfile() {
   const { user } = useAuth();
   const { request } = useApiRequest();
+  const { profileImage, setProfileImage, refreshProfile } = useProfile(); // Use context
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [isPasswordDialowOpen, setIsPasswordDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
@@ -53,6 +54,7 @@ export default function OwnerProfile() {
     newPassword: "",
     confirmPassword: "",
   });
+
   // Load complete user profile data from API
   useEffect(() => {
     if (user) {
@@ -82,9 +84,9 @@ export default function OwnerProfile() {
           adresse: userData.adresse || "",
         });
         if (userData.image) {
-          setProfileImage(userData.image);
+          setProfileImage(userData.image); // Update context
         } else {
-          setProfileImage(null);
+          setProfileImage(null); // Update context
         }
       }
     } catch (error) {
@@ -110,6 +112,7 @@ export default function OwnerProfile() {
       if (!updateResponse.ok) {
         throw new Error("Failed to update profile");
       }
+
       if (imageFile) {
         const formData = new FormData();
         formData.append("image", imageFile);
@@ -124,6 +127,7 @@ export default function OwnerProfile() {
 
         if (imageResponse.ok) {
           await loadUserProfile();
+          refreshProfile(); // Notify other components
           setImageFile(null);
           setImagePreview(null);
         } else {
@@ -138,6 +142,7 @@ export default function OwnerProfile() {
       setIsLoading(false);
     }
   };
+
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -425,7 +430,7 @@ export default function OwnerProfile() {
                 </p>
               </div>
               <Dialog
-                open={isPasswordDialogOpen}
+                open={isPasswordDialowOpen}
                 onOpenChange={setIsPasswordDialogOpen}
               >
                 <DialogTrigger asChild>

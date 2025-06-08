@@ -42,29 +42,28 @@ export const mailConfig = registerAs('mail', () => ({
   APP_NAME: process.env.APP_NAME,
 }));
 export const AppDataSource = new DataSource({
-  type:'postgres',
+  type: 'mysql',
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT),
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   entities: [__dirname + '/../modules/**/entities/*.entity{.ts,.js}'],
-  synchronize: true,
-  driver: require('pg'),
+  synchronize: false, // car je veux travailler avec migrations
+  driver: require('mysql2'),
   migrations: [__dirname + '/../migrations/*{.ts,.js}'],
 });
 //générer une migration
 // npm run migration:generate -- src/migrations/migration_name
 //éxecuter migration
 // npm run migration:run
-export const FlouciConfig =  registerAs('flouci', () => ({
- 
-      apiUrl: process.env.FLUOCI_API_URL,
-      appToken: process.env.FLUOCI_APP_TOKEN,
-      appSecret: process.env.FLUOCI_APP_SECRET,
-      successUrl: process.env.PAYMENT_SUCCESS_URL,
-      failUrl: process.env.PAYMENT_FAIL_URL,
-      sessionTimeout: parseInt(process.env.PAYMENT_SESSION_TIMEOUT || '1200', 10),
-      DEVELOPER_TRACKING_ID:process.env.DEVELOPER_TRACKING_ID
+export const FlouciConfig = registerAs('flouci', () => ({
+  apiUrl: process.env.FLUOCI_API_URL,
+  appToken: process.env.FLUOCI_APP_TOKEN,
+  appSecret: process.env.FLUOCI_APP_SECRET,
+  successUrl: process.env.PAYMENT_SUCCESS_URL,
+  failUrl: process.env.PAYMENT_FAIL_URL,
+  sessionTimeout: parseInt(process.env.PAYMENT_SESSION_TIMEOUT || '1200', 10),
+  DEVELOPER_TRACKING_ID: process.env.DEVELOPER_TRACKING_ID,
   // You can keep other configs here or split them into separate files
 }));
