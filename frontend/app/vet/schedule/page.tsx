@@ -13,6 +13,7 @@ type RendezVous = {
   heure: string;
   motif: string;
   type: string;
+  statut: string;
   proprietaire: {
     nom: string;
     prenom: string;
@@ -39,7 +40,6 @@ const typeColors: Record<string, string> = {
 
 };
 
-
 export default function SchedulePage() {
   const { user } = useAuth();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -48,26 +48,31 @@ export default function SchedulePage() {
   useEffect(() => {
     if (!user?.id) return;
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/rendezvous/confirmed/veterinaire/${user.id}`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/rendezvous/confirmedAndCompleted/veterinaire/${user.id}`)
       .then((res) => res.json())
       .then((data: RendezVous[]) => {
-        const calendarEvents = data.map((rdv) => {
-          const start = new Date(`${rdv.date}T${rdv.heure}`);
-          const type = rdv.type.toLowerCase();
-          return {
-            id: String(rdv.id),
-            title: `${rdv.proprietaire.prenom} ${rdv.proprietaire.nom} (${rdv.heure})`,
-            start,
-            color: typeColors[type] || "#E5E7EB",
-            extendedProps: {
-              motif: rdv.motif,
-              type: rdv.type,
-              proprietaire: `${rdv.proprietaire.prenom} ${rdv.proprietaire.nom}`,
-              heure: rdv.heure,
-              date: rdv.date,
-            },
-          };
-        });
+const calendarEvents = data.map((rdv) => {
+  const start = new Date(`${rdv.date}T${rdv.heure}`);
+  const type = rdv.type.toLowerCase();
+  const isCompleted = rdv.statut === 'completed';
+  console.log("Rendez-vous data:", rdv);
+
+  return {
+    id: String(rdv.id),
+    title: `${rdv.proprietaire.prenom} ${rdv.proprietaire.nom} (${rdv.heure})`,
+    start,
+    color: isCompleted ? "#9CA3AF" : (typeColors[type] || "#E5E7EB"), // Gray if COMPLETED
+    extendedProps: {
+      motif: rdv.motif,
+      type: rdv.type,
+      statut: rdv.statut,
+      proprietaire: `${rdv.proprietaire.prenom} ${rdv.proprietaire.nom}`,
+      heure: rdv.heure,
+      date: rdv.date,
+    },
+  };
+});
+
         setEvents(calendarEvents);
       });
   }, [user]);

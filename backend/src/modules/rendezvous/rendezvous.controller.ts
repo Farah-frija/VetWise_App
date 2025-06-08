@@ -97,4 +97,18 @@ async getConfirmedByVeterinaire(@Param('veterinaireId') id: number) {
   return this.rendezvousService.getConfirmedRendezvousByVeterinaireId(id);
 }
 
+  @Get('confirmedAndCompleted/veterinaire/:veterinaireId')
+async getConfirmedAndCompletedRendezvousByVeterinaireId(@Param('veterinaireId') id: number) {
+  return this.rendezvousService.getConfirmedAndCompletedRendezvousByVeterinaireId(id);
+}
+
+  @Get('confirmed/today/veterinaire/:veterinaireId')
+async getConfirmedTodayByVeterinaire(@Param('veterinaireId') id: number) {
+  return this.rendezvousService.getTodayConfirmedRendezvousByVeterinaireId(id);
+}
+@Get(':id/unconsulted-animals')
+async getUnconsultedAnimals(@Param('id') id: number) {
+  return this.rendezvousService.getAnimalsWithoutConsultation(id);
+}
+
 }

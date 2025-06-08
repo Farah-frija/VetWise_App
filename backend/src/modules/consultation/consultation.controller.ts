@@ -47,5 +47,8 @@ getByAnimal(@Param('id', ParseIntPipe) id: number) {
 getByProprietaire(@Param('id', ParseIntPipe) id: number) {
   return this.consultationService.findByProprietaire(id);
 }
-
+  @Get('vet/:veterinaireId')
+  findByVeterinaire(@Param('veterinaireId', ParseIntPipe) veterinaireId: number) {
+    return this.consultationService.findByVeterinaire(veterinaireId);
+  }
 }

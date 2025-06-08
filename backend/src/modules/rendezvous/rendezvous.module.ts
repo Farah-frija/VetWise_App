@@ -8,9 +8,10 @@ import { Veterinaire } from '../utilisateur/entities/veterinaire.entity';
 import { Animal } from '../animal/entities/animal.entity';
 import { Utilisateur } from '../utilisateur/entities/utilisateur.entity';
 import { Disponibilite } from '../disponibilite/entities/disponibilite.entity';
+import { Consultation } from '../consultation/entities/consultation.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Rendezvous, RendezvousAnimal, Utilisateur, Animal, Disponibilite])],
+  imports: [TypeOrmModule.forFeature([Rendezvous, RendezvousAnimal, Utilisateur, Animal, Disponibilite, Consultation])],
   providers: [RendezvousService],
   controllers: [RendezvousController],
 })

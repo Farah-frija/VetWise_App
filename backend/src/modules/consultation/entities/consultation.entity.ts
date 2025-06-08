@@ -12,7 +12,12 @@ export class Consultation extends BaseEntity {
   animal: Animal;
 
   @ManyToOne(() => Rendezvous, (rdv) => rdv.consultations, { nullable: true })
+  @JoinColumn({ name: 'rendezvousId' })
+
   rendezvous: Rendezvous;
+  
+@Column({ nullable: true }) // 👈 Permet de voir/modifier le champ directement
+rendezvousId: number;
 
   @ManyToOne(() => Veterinaire, (vet) => vet.consultations)
   veterinaire: Veterinaire;

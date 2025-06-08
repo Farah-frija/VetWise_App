@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MoreThanOrEqual, Repository } from 'typeorm';
+import { Between, In, MoreThanOrEqual, Repository } from 'typeorm';
 import { Rendezvous } from './entities/rendezvous.entity';
 import { RendezvousAnimal } from './entities/rendezvous-animal.entity';
 import { Veterinaire } from '../utilisateur/entities/veterinaire.entity';
@@ -16,6 +16,9 @@ import { Utilisateur } from '../utilisateur/entities/utilisateur.entity';
 import * as moment from 'moment';
 import { Disponibilite } from '../disponibilite/entities/disponibilite.entity';
 import { RendezvousStatus } from '../../common/enums/rendezvous-status.enum';
+import { startOfDay, endOfDay } from 'date-fns';
+import { Consultation } from '../consultation/entities/consultation.entity';
+
 moment.locale('fr');
 @Injectable()
 export class RendezvousService {
@@ -31,6 +34,9 @@ export class RendezvousService {
 
     @InjectRepository(Utilisateur)
     private readonly utilisateurRepository: Repository<Utilisateur>,
+    
+    @InjectRepository(Consultation)
+    private readonly consultationRepo: Repository<Consultation>,
 
     @InjectRepository(Disponibilite)
     private readonly disponibiliteRepo: Repository<Disponibilite>,
@@ -380,6 +386,13 @@ async findByVeterinaireId(veterinaireId: number): Promise<Rendezvous[]> {
   });
 }
 async getConfirmedRendezvousByVeterinaireId(veterinaireId: number) {
+    const vet = await this.utilisateurRepository.findOne({
+    where: { id: veterinaireId, role: UserRole.VETERINARIAN },
+  });
+
+  if (!vet) {
+    throw new NotFoundException('Vétérinaire introuvable');
+  }
   return this.rendezvousRepo.find({
     where: {
       veterinaire: { id: veterinaireId },
@@ -388,6 +401,104 @@ async getConfirmedRendezvousByVeterinaireId(veterinaireId: number) {
     relations: ['proprietaire', 'animaux', 'animaux.animal'], // adjust relations as needed
   });
 }
+// for schedule 
+async getConfirmedAndCompletedRendezvousByVeterinaireId(veterinaireId: number) {
+    const vet = await this.utilisateurRepository.findOne({
+    where: { id: veterinaireId, role: UserRole.VETERINARIAN },
+  });
+
+  if (!vet) {
+    throw new NotFoundException('Vétérinaire introuvable');
+  }
+  return this.rendezvousRepo.find({
+    where: {
+      veterinaire: { id: veterinaireId },
+      statut: In([RendezvousStatus.CONFIRMED, RendezvousStatus.COMPLETED]),
+    },
+    relations: ['proprietaire', 'animaux', 'animaux.animal'], // adjust relations as needed
+  });
+}
+
+// this function gets today's confirmed rendez-vous that are not yet fully associated to consultations for all animals
+async getTodayConfirmedRendezvousByVeterinaireId(veterinaireId: number) {
+  const vet = await this.utilisateurRepository.findOne({
+    where: { id: veterinaireId, role: UserRole.VETERINARIAN },
+  });
+
+  if (!vet) {
+    throw new NotFoundException('Vétérinaire introuvable');
+  }
+
+  const todayStart = moment().startOf('day').format('YYYY-MM-DD');
+  const todayEnd = moment().endOf('day').format('YYYY-MM-DD');
+
+  // Step 1: Get all today's confirmed rendezvous
+  const allTodayConfirmed = await this.rendezvousRepo.find({
+    where: {
+      veterinaire: { id: veterinaireId },
+      statut: RendezvousStatus.CONFIRMED,
+      date: Between(todayStart, todayEnd),
+    },
+    relations: ['animaux', 'animaux.animal'], // fetch rendezvous_animaux and linked animal
+  });
+
+  // Step 2: Filter rendezvous where at least one animal has no consultation
+  const matchingRdv = [];
+  console.log("allTodayConfirmed", allTodayConfirmed);
+  for (const rdv of allTodayConfirmed) {
+    for (const ra of rdv.animaux) {
+            console.log("in rdv")
+
+      console.log(rdv.id)
+      const consultationExists = await this.consultationRepo.findOne({
+        where: {
+          rendezvous: { id: rdv.id },
+          animal: { id: ra.animal.id },
+        },
+      });
+      console.log("bbb");
+      console.log(consultationExists);
+
+      if (!consultationExists) {
+        matchingRdv.push(rdv);
+        break; // No need to check the rest of animals in this rdv
+      }
+    }
+  }
+
+  return matchingRdv;
+}
+
+// This function retrieves all animals linked to a rendezvous that have not been consulted yet
+async getAnimalsWithoutConsultation(rendezvousId: number): Promise<Animal[]> {
+  const rendezvous = await this.rendezvousRepo.findOne({
+    where: { id: rendezvousId },
+    relations: ['animaux', 'animaux.animal'],
+  });
+
+  if (!rendezvous) {
+    throw new NotFoundException(`Rendezvous with id ${rendezvousId} not found`);
+  }
+
+  // Get all consulted animal IDs for this rendezvous
+  const consultedAnimalIdsRaw = await this.consultationRepo
+    .createQueryBuilder('consultation')
+    .select('consultation.animalId', 'animalId')
+    .where('consultation.rendezvousId = :rdvId', { rdvId: rendezvousId })
+    .getRawMany();
+
+  const consultedAnimalIds = consultedAnimalIdsRaw.map(r => r.animalId);
+
+  // Filter animals that are not in the consultedAnimalIds
+  const unconsultedAnimals = rendezvous.animaux
+    .filter(ra => !consultedAnimalIds.includes(ra.animal.id))
+    .map(ra => ra.animal);
+
+  return unconsultedAnimals;
+}
+
+
+
 
 
 }
