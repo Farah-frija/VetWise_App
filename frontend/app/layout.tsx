@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/auth-provider";
+import { ProfileProvider } from "@/components/profile-profider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -10,7 +11,6 @@ export const metadata: Metadata = {
   title: "VetCat - 24/7 Online Veterinary Care",
   description:
     "Connect with licensed veterinarians for your pet's health needs",
-  generator: "v0.dev",
 };
 
 export default function RootLayout({
@@ -21,7 +21,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <ProfileProvider>{children}</ProfileProvider>
+        </AuthProvider>
       </body>
     </html>
   );

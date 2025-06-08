@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Suspense } from "react";
 import { useState } from "react";
+import { useProfile } from "@/components/profile-profider";
 
 const menuItems = [
   {
@@ -156,12 +157,7 @@ function ProfileImage({
       return imageSrc;
     }
 
-    // If it looks like base64 but missing data URL prefix
-    if (imageSrc.includes("/") && !imageSrc.startsWith("data:")) {
-      // Assume it's a base64 string, add data URL prefix
-      return `data:image/jpeg;base64,${imageSrc}`;
-    }
-
+    // If it's a file path, return as is (the backend should serve it properly)
     return imageSrc;
   };
 
@@ -184,54 +180,55 @@ export default function OwnerLayout({
   const { user, token, isLoading } = useAuth(); // Add token and isLoading
   const router = useRouter();
   const { request } = useApiRequest();
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const {
+    profileImage,
+    setProfileImage,
+    nom,
+    prenom,
+    setUserNames,
+    profileVersion,
+  } = useProfile(); // Use context for names
   const [profileLoading, setProfileLoading] = useState(true);
 
-  // Fetch profile image
+  // Load user profile data
   useEffect(() => {
-    const fetchProfileImage = async () => {
-      if (!user || !user.id || !token) {
+    const loadUserProfile = async () => {
+      if (!user || !token) {
         setProfileLoading(false);
         return;
       }
 
       try {
-        const response = await request(`/utilisateurs/image/${user.id}`, {
-          method: "GET",
-        });
+        const response: Response = await request(
+          `/utilisateurs/profile/${user.id}`,
+          {
+            method: "GET",
+          }
+        );
 
         if (response.ok) {
-          const data = await response.json();
-          // Handle different response formats
-          if (data.image) {
-            // If the response has an image field
-            setProfileImage(data.image);
-          } else if (data.imageUrl) {
-            // If the response has an imageUrl field
-            setProfileImage(data.imageUrl);
-          } else if (typeof data === "string") {
-            // If the response is directly a string
-            setProfileImage(data);
+          const userData = await response.json();
+
+          // Update context with user names
+          setUserNames(userData.nom || "", userData.prenom || "");
+
+          if (userData.image) {
+            setProfileImage(userData.image);
           } else {
-            console.log("No image data found in response");
             setProfileImage(null);
           }
-        } else {
-          console.log("Profile image response not ok:", response.status);
-          setProfileImage(null);
         }
       } catch (error) {
-        console.error("Failed to fetch profile image:", error);
+        console.error("Failed to load user profile:", error);
         setProfileImage(null);
+        setUserNames("", ""); // Reset names on error
       } finally {
         setProfileLoading(false);
       }
     };
 
-    if (user && token && !isLoading) {
-      fetchProfileImage();
-    }
-  }, [request, user, token, isLoading]);
+    loadUserProfile();
+  }, [user, token, request, profileVersion, setProfileImage, setUserNames]); // Add setUserNames to dependencies
 
   useEffect(() => {
     // Don't redirect while still loading
@@ -265,6 +262,10 @@ export default function OwnerLayout({
     return null;
   }
 
+  // Use context values for display, fallback to user object if context not loaded yet
+  const displayPrenom = prenom || user.prenom;
+  const displayNom = nom || user.nom;
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -282,12 +283,12 @@ export default function OwnerLayout({
             <div className="flex items-center space-x-3 text-sm text-gray-600">
               <ProfileImage
                 src={profileImage}
-                alt={`${user.prenom} ${user.nom}'s profile`}
+                alt={`${displayPrenom} ${displayNom}'s profile`}
                 loading={profileLoading}
                 className="w-8 h-8 rounded-full object-cover border border-gray-200"
               />
               <div>
-                Welcome, {user.prenom} {user.nom}
+                Welcome, {displayPrenom} {displayNom}
               </div>
             </div>
           </div>

@@ -20,9 +20,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { User, Edit, Save, Camera, Lock, Upload, X } from "lucide-react";
+import {
+  User,
+  Edit,
+  Save,
+  Camera,
+  Lock,
+  Upload,
+  X,
+  Stethoscope,
+  Award,
+} from "lucide-react";
 import { useAuth, useApiRequest } from "@/components/auth-provider";
-import { useProfile } from "@/components/profile-profider";
 
 interface ChangePasswordData {
   currentPassword: string;
@@ -30,22 +39,15 @@ interface ChangePasswordData {
   confirmPassword: string;
 }
 
-export default function OwnerProfile() {
+export default function VetProfile() {
   const { user } = useAuth();
   const { request } = useApiRequest();
-  const {
-    profileImage,
-    setProfileImage,
-    nom,
-    prenom,
-    setUserNames,
-    refreshProfile,
-  } = useProfile(); // Use context for names too
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [isPasswordDialowOpen, setIsPasswordDialogOpen] = useState(false);
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
@@ -54,6 +56,8 @@ export default function OwnerProfile() {
     email: "",
     telephone: "",
     adresse: "",
+    specialities: "",
+    numlicence: "",
   });
 
   const [passwordData, setPasswordData] = useState<ChangePasswordData>({
@@ -62,14 +66,14 @@ export default function OwnerProfile() {
     confirmPassword: "",
   });
 
-  // Load complete user profile data from API
+  // Load complete vet profile data from API
   useEffect(() => {
     if (user) {
-      loadUserProfile();
+      loadVetProfile();
     }
   }, [user]);
 
-  const loadUserProfile = async () => {
+  const loadVetProfile = async () => {
     if (!user) return;
 
     setIsLoading(true);
@@ -82,26 +86,24 @@ export default function OwnerProfile() {
       );
 
       if (response.ok) {
-        const userData = await response.json();
+        const vetData = await response.json();
         setFormData({
-          nom: userData.nom || "",
-          prenom: userData.prenom || "",
-          email: userData.email || "",
-          telephone: userData.telephone || "",
-          adresse: userData.adresse || "",
+          nom: vetData.nom || "",
+          prenom: vetData.prenom || "",
+          email: vetData.email || "",
+          telephone: vetData.telephone || "",
+          adresse: vetData.adresse || "",
+          specialities: vetData.specialities || "",
+          numlicence: vetData.numlicence || "",
         });
-
-        // Update context with names
-        setUserNames(userData.nom || "", userData.prenom || "");
-
-        if (userData.image) {
-          setProfileImage(userData.image); // Update context
+        if (vetData.image) {
+          setProfileImage(vetData.image);
         } else {
-          setProfileImage(null); // Update context
+          setProfileImage(null);
         }
       }
     } catch (error) {
-      console.error("Failed to load user profile:", error);
+      console.error("Failed to load vet profile:", error);
     } finally {
       setIsLoading(false);
     }
@@ -124,9 +126,6 @@ export default function OwnerProfile() {
         throw new Error("Failed to update profile");
       }
 
-      // Update context with new names immediately after successful API call
-      setUserNames(formData.nom, formData.prenom);
-
       if (imageFile) {
         const formData = new FormData();
         formData.append("image", imageFile);
@@ -140,16 +139,12 @@ export default function OwnerProfile() {
         );
 
         if (imageResponse.ok) {
-          await loadUserProfile();
-          refreshProfile(); // Notify other components
+          await loadVetProfile();
           setImageFile(null);
           setImagePreview(null);
         } else {
           throw new Error("Failed to update profile image");
         }
-      } else {
-        // If no image update, just refresh to notify other components
-        refreshProfile();
       }
 
       setIsEditing(false);
@@ -259,8 +254,12 @@ export default function OwnerProfile() {
     <div className="space-y-8">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
-          <p className="text-gray-600 mt-2">Manage your account information</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Veterinarian Profile
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Manage your professional information
+          </p>
         </div>
         <Button
           onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
@@ -292,7 +291,7 @@ export default function OwnerProfile() {
               Profile Picture
             </CardTitle>
             <CardDescription>
-              Upload and manage your profile picture
+              Upload and manage your professional profile picture
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -306,7 +305,7 @@ export default function OwnerProfile() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <User className="h-12 w-12 text-gray-400" />
+                    <Stethoscope className="h-12 w-12 text-gray-400" />
                   )}
                 </div>
                 {isEditing && (
@@ -354,7 +353,7 @@ export default function OwnerProfile() {
         </Card>
 
         {/* Personal Information */}
-        <Card>
+        <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center">
               <User className="h-5 w-5 mr-2" />
@@ -432,8 +431,67 @@ export default function OwnerProfile() {
           </CardContent>
         </Card>
 
+        {/* Professional Information */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Stethoscope className="h-5 w-5 mr-2" />
+              Professional Information
+            </CardTitle>
+            <CardDescription>
+              Your veterinary credentials and specialties
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="numlicence" className="flex items-center">
+                <Award className="h-4 w-4 mr-2" />
+                License Number
+              </Label>
+              {isEditing ? (
+                <Input
+                  id="numlicence"
+                  value={formData.numlicence}
+                  onChange={(e) =>
+                    handleInputChange("numlicence", e.target.value)
+                  }
+                  placeholder="Enter your veterinary license number"
+                />
+              ) : (
+                <p className="mt-1 text-gray-900">
+                  {formData.numlicence || "Not provided"}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="specialities">Specialties</Label>
+              {isEditing ? (
+                <Textarea
+                  id="specialities"
+                  value={formData.specialities}
+                  onChange={(e) =>
+                    handleInputChange("specialities", e.target.value)
+                  }
+                  rows={3}
+                  placeholder="e.g., Small Animal Medicine, Surgery, Emergency Care, Cardiology..."
+                />
+              ) : (
+                <p className="mt-1 text-gray-900">
+                  {formData.specialities || "Not specified"}
+                </p>
+              )}
+              {isEditing && (
+                <p className="text-sm text-gray-600 mt-1">
+                  List your areas of specialization, separated by commas
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Account Settings */}
-        <Card className="mt-6">
+        <Card>
           <CardHeader>
             <CardTitle>Account Settings</CardTitle>
             <CardDescription>Manage your account preferences</CardDescription>
@@ -447,7 +505,7 @@ export default function OwnerProfile() {
                 </p>
               </div>
               <Dialog
-                open={isPasswordDialowOpen}
+                open={isPasswordDialogOpen}
                 onOpenChange={setIsPasswordDialogOpen}
               >
                 <DialogTrigger asChild>
