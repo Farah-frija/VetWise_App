@@ -14,6 +14,7 @@ import { ConversationService } from '../../Chat/services/conversation.service';
 import { Conversation } from '../../Chat/Entities/conversation.entity';
 import { UserRole } from '../../../common/enums/roles.enum';
 import { RendezvousCheckResponseDto } from '../dtos/RendezVusCheckResponseDto';
+import { RendezvousStatus } from '../../../common/enums/rendezvous-status.enum';
 @Injectable()
 export class PaiementService {
   private readonly logger = new Logger(PaiementService.name);
@@ -118,6 +119,7 @@ export class PaiementService {
 
     // Update the rendezvous with the successful payment
     rendezvous.lastSuccessfulPaiement = payment;
+   
     await this.rendezvousRepository.save(rendezvous);
 
     // Use conversation service to handle conversation creation

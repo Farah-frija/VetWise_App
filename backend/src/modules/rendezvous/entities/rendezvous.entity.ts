@@ -53,7 +53,10 @@ export class Rendezvous extends BaseEntity {
   consultations: Consultation[];
   @OneToMany(() => Paiement, (paiement) => paiement.rendezvous)
   paiements: Paiement[];
-  @OneToOne(() => Paiement, { nullable: true })
-  @JoinColumn({ name: 'lastSuccessfulPaiementId' })
-  lastSuccessfulPaiement: Paiement | null;
+  @Column({ name: 'lastSuccessfulPaiementId', nullable: true })
+lastSuccessfulPaiementId: string | null;  // The actual ID column
+
+@OneToOne(() => Paiement, { nullable: true })
+@JoinColumn({ name: 'lastSuccessfulPaiementId' })
+lastSuccessfulPaiement?: Paiement | null;  // The relation (optional)
 }

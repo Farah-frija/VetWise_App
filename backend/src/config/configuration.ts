@@ -42,15 +42,15 @@ export const mailConfig = registerAs('mail', () => ({
   APP_NAME: process.env.APP_NAME,
 }));
 export const AppDataSource = new DataSource({
-  type: 'mysql',
+  type:'postgres',
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT),
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   entities: [__dirname + '/../modules/**/entities/*.entity{.ts,.js}'],
-  synchronize: false,
-  driver: require('mysql2'),
+  synchronize: true,
+  driver: require('pg'),
   migrations: [__dirname + '/../migrations/*{.ts,.js}'],
 });
 //générer une migration
