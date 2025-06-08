@@ -4,7 +4,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import axios from 'axios';
-import { v4 as uuidv4 } from 'uuid';
 
 import { CreatePaiementDto } from '../dtos/RequestDto';
 import { Paiement } from '../entities/Paiement.entity';
@@ -12,6 +11,10 @@ import { PaiementStatus } from '../../../common/enums/paiement.enum'
 
 import { Rendezvous } from '../../rendezvous/entities/rendezvous.entity';
 import { ConversationService } from '../../Chat/services/conversation.service';
+import { Conversation } from '../../Chat/Entities/conversation.entity';
+import { UserRole } from '../../../common/enums/roles.enum';
+import { RendezvousCheckResponseDto } from '../dtos/RendezVusCheckResponseDto';
+import { RendezvousStatus } from '../../../common/enums/rendezvous-status.enum';
 @Injectable()
 export class PaiementService {
   private readonly logger = new Logger(PaiementService.name);
@@ -21,6 +24,8 @@ export class PaiementService {
     private readonly paiementRepository: Repository<Paiement>,
     @InjectRepository(Rendezvous)
     private readonly rendezvousRepository: Repository<Rendezvous>,
+    @InjectRepository(Conversation)
+    private readonly conversationRepository: Repository<Conversation>,
     private readonly configService: ConfigService,
     private readonly conversationService: ConversationService,
   ) {}
@@ -114,6 +119,7 @@ export class PaiementService {
 
     // Update the rendezvous with the successful payment
     rendezvous.lastSuccessfulPaiement = payment;
+   
     await this.rendezvousRepository.save(rendezvous);
 
     // Use conversation service to handle conversation creation
@@ -189,4 +195,142 @@ export class PaiementService {
       }
     }
   }
+  async checkRendezvousStatus(conversationId: string): Promise<RendezvousCheckResponseDto> {
+    // 1. Get the conversation with participants
+    const conversation = await this.conversationRepository.findOne({
+      where: { id: conversationId },
+      relations: ['participant1', 'participant2'],
+    });
+
+    if (!conversation) {
+      throw new HttpException('Conversation not found', HttpStatus.NOT_FOUND);
+    }
+
+    // 2. Verify one participant is vet and other is owner
+    const { participant1, participant2 } = conversation;
+    const isParticipant1Vet = participant1.role === UserRole.VETERINARIAN;
+    const isParticipant2Vet = participant2.role === UserRole.VETERINARIAN;
+    
+    if (!(isParticipant1Vet == isParticipant2Vet)) {
+      return { status: 'failure', reason: 'Invalid participant roles' };
+    }
+
+    const veterinaireId = isParticipant1Vet ? participant1.id : participant2.id;
+    const proprietaireId = isParticipant1Vet ? participant2.id : participant1.id;
+
+    // 3. Find all rendezvous between these participants with successful payment
+    const now = new Date();
+    const oneHourInMs = 60 * 60 * 1000;
+
+    const rendezvousList = await this.rendezvousRepository.find({
+      where: [
+        { 
+          veterinaire: { id: veterinaireId }, 
+          proprietaire: { id: proprietaireId },
+          lastSuccessfulPaiement: { status: PaiementStatus.COMPLETED }
+        },
+      
+      ],
+      relations: ['lastSuccessfulPaiement'],
+      order: { date: 'DESC', heure: 'DESC' },
+    });
+
+    if (!rendezvousList || rendezvousList.length === 0) {
+      return { status: 'failure', reason: 'No completed rendezvous found' };
+    }
+
+    // 4. Check each rendezvous to find one that's within the time window
+    for (const rendezvous of rendezvousList) {
+      const rendezvousStart = new Date(`${rendezvous.date}T${rendezvous.heure}`);
+      const rendezvousEnd = new Date(rendezvousStart.getTime() + oneHourInMs);
+      
+      // Check if current time is between start and end (start <= now <= end)
+      if (now >= rendezvousStart && now <= rendezvousEnd) {
+        return { 
+          conversationId:conversationId,
+          status: 'success',
+          rendezvousId: rendezvous.id,
+          startTime: rendezvousStart.toISOString(),
+          endTime: rendezvousEnd.toISOString(),
+          currentTime: now.toISOString(),
+          timeRemaining: Math.max(0, rendezvousEnd.getTime() - now.getTime()) // in ms
+        };
+      }
+    }
+
+    // If we get here, no matching rendezvous was found
+    return { 
+      status: 'failure', 
+      reason: 'No active rendezvous found (payment completed and within time window)' 
+    };
+  }
+  async checkActiveConversationOFOneUser(userId: number): Promise<RendezvousCheckResponseDto> {
+    // 1. Get all conversations for the user
+    const conversations = await this.conversationRepository.find({
+        where: [
+            { participant1: { id: userId } },
+            { participant2: { id: userId } }
+        ],
+        relations: ['participant1', 'participant2'],
+    });
+
+    if (!conversations || conversations.length === 0) {
+        return { status: 'failure', reason: 'No conversations found for user' };
+    }
+
+    const now = new Date();
+    const oneHourInMs = 60 * 60 * 1000;
+
+    // 2. Check each conversation for active rendezvous
+    for (const conversation of conversations) {
+        // Determine roles
+        const { participant1, participant2 } = conversation;
+        const isParticipant1Vet = participant1.role === UserRole.VETERINARIAN;
+        const isParticipant2Vet = participant2.role === UserRole.VETERINARIAN;
+
+        // Skip if both participants have same role
+        if (isParticipant1Vet === isParticipant2Vet) continue;
+
+        const veterinaireId = isParticipant1Vet ? participant1.id : participant2.id;
+        const proprietaireId = isParticipant1Vet ? participant2.id : participant1.id;
+
+        // 3. Find completed rendezvous for this conversation pair
+        const rendezvousList = await this.rendezvousRepository.find({
+            where: {
+                veterinaire: { id: veterinaireId },
+                proprietaire: { id: proprietaireId },
+                lastSuccessfulPaiement: { status: PaiementStatus.COMPLETED }
+            },
+            relations: ['lastSuccessfulPaiement'],
+            order: { date: 'DESC', heure: 'DESC' },
+        });
+
+        if (!rendezvousList || rendezvousList.length === 0) continue;
+
+        // 4. Check for active rendezvous
+        for (const rendezvous of rendezvousList) {
+            const rendezvousStart = new Date(`${rendezvous.date}T${rendezvous.heure}`);
+            const rendezvousEnd = new Date(rendezvousStart.getTime() + oneHourInMs);
+
+            if (now >= rendezvousStart && now <= rendezvousEnd) {
+                return {
+                    status: 'success',
+                    conversationId: conversation.id,
+                    rendezvousId: rendezvous.id,
+                    startTime: rendezvousStart.toISOString(),
+                    endTime: rendezvousEnd.toISOString(),
+                    currentTime: now.toISOString(),
+                    timeRemaining: Math.max(0, rendezvousEnd.getTime() - now.getTime()),
+                   
+                };
+            }
+        }
+    }
+
+    return {
+        status: 'failure',
+        reason: 'No active rendezvous found in any conversation'
+    };
 }
+}
+

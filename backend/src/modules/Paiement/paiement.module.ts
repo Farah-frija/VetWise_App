@@ -6,9 +6,10 @@ import { PaiementService } from './services/Paiement.service';
 import { Rendezvous } from '../rendezvous/entities/rendezvous.entity';
 import { ChatModule } from '../Chat/chat.module';
 import { PaiementController } from './Paiement.controller';
+import { Conversation } from '../Chat/Entities/conversation.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Paiement,Rendezvous]),ChatModule],
+  imports: [TypeOrmModule.forFeature([Paiement,Rendezvous,Conversation]),ChatModule],
   providers: [PaiementService],
   controllers: [PaiementController],
 })

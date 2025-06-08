@@ -76,5 +76,25 @@ export class RendezvousController {
   ) {
     return this.rendezvousService.getCreneauxDisponibles(date, veterinaireId);
   }
-  //add method to retrive upcoming rendez vous of an owner please
+
+    @Get('proprietaire/:id')
+  findByProprietaireId(@Param('id', ParseIntPipe) id: number) {
+    return this.rendezvousService.findByProprietaireId(id);
+  }
+
+@Get('upcoming/:proprietaireId')
+findUpcomingConfirmedByProprietaire(@Param('proprietaireId') id: number) {
+  return this.rendezvousService.findUpcomingConfirmedByProprietaire(id);
+}
+
+  @Get('veterinaire/:id')
+  findByVeterinaireId(@Param('id') id: number) {
+    return this.rendezvousService.findByVeterinaireId(id);
+  }
+
+  @Get('confirmed/veterinaire/:veterinaireId')
+async getConfirmedByVeterinaire(@Param('veterinaireId') id: number) {
+  return this.rendezvousService.getConfirmedRendezvousByVeterinaireId(id);
+}
+
 }

@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { MoreThanOrEqual, Repository } from 'typeorm';
 import { Rendezvous } from './entities/rendezvous.entity';
 import { RendezvousAnimal } from './entities/rendezvous-animal.entity';
 import { Veterinaire } from '../utilisateur/entities/veterinaire.entity';
@@ -16,7 +16,7 @@ import { Utilisateur } from '../utilisateur/entities/utilisateur.entity';
 import * as moment from 'moment';
 import { Disponibilite } from '../disponibilite/entities/disponibilite.entity';
 import { RendezvousStatus } from '../../common/enums/rendezvous-status.enum';
-
+moment.locale('fr');
 @Injectable()
 export class RendezvousService {
   constructor(
@@ -336,5 +336,58 @@ export class RendezvousService {
 
   return creneauxDispo;
 }
+
+async findByProprietaireId(proprietaireId: number): Promise<Rendezvous[]> {
+  const rendezvous = await this.rendezvousRepo.find({
+    where: { proprietaire: { id: proprietaireId } },
+    relations: ['veterinaire', 'animaux', 'animaux.animal'],
+    order: { date: 'DESC', heure: 'DESC' },
+  });
+
+  if (!rendezvous || rendezvous.length === 0) {
+    throw new NotFoundException('Aucun rendez-vous trouvé pour ce propriétaire');
+  }
+
+  return rendezvous;
+}
+
+async findUpcomingConfirmedByProprietaire(proprietaireId: number): Promise<Rendezvous[]> {
+  const today = moment().startOf('day').format('YYYY-MM-DD');
+
+  return this.rendezvousRepo.find({
+    where: {
+      statut: RendezvousStatus.CONFIRMED,
+      date: MoreThanOrEqual(today),
+      proprietaire: { id: proprietaireId },
+    },
+    order: { date: 'ASC', heure: 'ASC' },
+    relations: ['veterinaire', 'proprietaire', 'animaux', 'animaux.animal'],
+  });
+}
+
+async findByVeterinaireId(veterinaireId: number): Promise<Rendezvous[]> {
+  const vet = await this.utilisateurRepository.findOne({
+    where: { id: veterinaireId, role: UserRole.VETERINARIAN },
+  });
+
+  if (!vet) {
+    throw new NotFoundException('Vétérinaire introuvable');
+  }
+
+  return this.rendezvousRepo.find({
+    where: { veterinaire: { id: veterinaireId } },
+    relations: [ 'proprietaire', 'animaux', 'animaux.animal'],
+  });
+}
+async getConfirmedRendezvousByVeterinaireId(veterinaireId: number) {
+  return this.rendezvousRepo.find({
+    where: {
+      veterinaire: { id: veterinaireId },
+      statut: RendezvousStatus.CONFIRMED,
+    },
+    relations: ['proprietaire', 'animaux', 'animaux.animal'], // adjust relations as needed
+  });
+}
+
 
 }
