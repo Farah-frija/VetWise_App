@@ -365,6 +365,29 @@ async findUpcomingConfirmedByProprietaire(proprietaireId: number): Promise<Rende
   });
 }
 
+async findByVeterinaireId(veterinaireId: number): Promise<Rendezvous[]> {
+  const vet = await this.utilisateurRepository.findOne({
+    where: { id: veterinaireId, role: UserRole.VETERINARIAN },
+  });
+
+  if (!vet) {
+    throw new NotFoundException('Vétérinaire introuvable');
+  }
+
+  return this.rendezvousRepo.find({
+    where: { veterinaire: { id: veterinaireId } },
+    relations: [ 'proprietaire', 'animaux', 'animaux.animal'],
+  });
+}
+async getConfirmedRendezvousByVeterinaireId(veterinaireId: number) {
+  return this.rendezvousRepo.find({
+    where: {
+      veterinaire: { id: veterinaireId },
+      statut: RendezvousStatus.CONFIRMED,
+    },
+    relations: ['proprietaire', 'animaux', 'animaux.animal'], // adjust relations as needed
+  });
+}
 
 
 }

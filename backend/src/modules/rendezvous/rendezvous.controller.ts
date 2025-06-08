@@ -87,5 +87,14 @@ findUpcomingConfirmedByProprietaire(@Param('proprietaireId') id: number) {
   return this.rendezvousService.findUpcomingConfirmedByProprietaire(id);
 }
 
+  @Get('veterinaire/:id')
+  findByVeterinaireId(@Param('id') id: number) {
+    return this.rendezvousService.findByVeterinaireId(id);
+  }
+
+  @Get('confirmed/veterinaire/:veterinaireId')
+async getConfirmedByVeterinaire(@Param('veterinaireId') id: number) {
+  return this.rendezvousService.getConfirmedRendezvousByVeterinaireId(id);
+}
 
 }
