@@ -1,108 +1,165 @@
-"use client"
+"use client";
 
-import type React from "react"
+import { useState, useRef } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Upload, Camera, Sparkles, ArrowLeft, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { useAuth } from "@/components/auth-provider";
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { Upload, Camera, Sparkles, ArrowLeft, Loader2 } from "lucide-react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import Image from "next/image"
-
-// Mock AI breed prediction API response
 interface BreedPrediction {
-  breed: string
-  confidence: number
+  breed: string;
+  confidence: number;
 }
 
 export default function AddPet() {
   const [formData, setFormData] = useState({
-    name: "",
-    breed: "",
-    age: "",
-    weight: "",
-    color: "",
-    notes: "",
-  })
-  const [selectedImage, setSelectedImage] = useState<string | null>(null)
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [predictedBreeds, setPredictedBreeds] = useState<BreedPrediction[]>([])
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [uploadError, setUploadError] = useState<string | null>(null)
-  const router = useRouter()
-
+    nom: "",
+    espece: "",
+    race: "",
+    dateNaissance: "",
+    sexe: "",
+    proprietaireId: 0
+  });
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [predictedBreeds, setPredictedBreeds] = useState<BreedPrediction[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+  const { user, token } = useAuth()
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    setUploadError(null)
+    const file = event.target.files?.[0];
+    setUploadError(null);
 
     if (file) {
-      // Check file size (limit to 5MB)
+      // Validate file size (5MB max)
       if (file.size > 5 * 1024 * 1024) {
-        setUploadError("Image size should be less than 5MB")
-        return
+        setUploadError("Image size should be less than 5MB");
+        return;
       }
 
-      // Check file type
+      // Validate file type
       if (!file.type.startsWith("image/")) {
-        setUploadError("Please upload an image file")
-        return
+        setUploadError("Please upload an image file");
+        return;
       }
 
-      setImageFile(file)
-      const reader = new FileReader()
+      setImageFile(file);
+      const reader = new FileReader();
       reader.onload = (e) => {
-        setSelectedImage(e.target?.result as string)
-      }
-      reader.readAsDataURL(file)
+        if (e.target?.result) {
+          setSelectedImage(e.target.result as string);
+        }
+      };
+      reader.onerror = () => {
+        setUploadError("Failed to read image file");
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
+
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
 
   const handleBreedPrediction = async () => {
-    if (!imageFile) return
+    if (!imageFile) return;
 
-    setIsAnalyzing(true)
-    setPredictedBreeds([])
+    setIsAnalyzing(true);
+    setPredictedBreeds([]);
+    setUploadError(null);
 
     try {
-      // In a real app, this would be an actual API call to an AI service
-      // For this demo, we'll simulate the API call with a timeout
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      const formData = new FormData();
+      formData.append("file", imageFile); 
 
-      // Mock response - in a real app, this would come from the AI API
-      const mockPredictions: BreedPrediction[] = [
-        { breed: "Persian Cat", confidence: 0.92 },
-        { breed: "Siamese Cat", confidence: 0.05 },
-        { breed: "Maine Coon", confidence: 0.03 },
-      ]
+      const response = await fetch("http://127.0.0.1:8000/predict", {
+        method: "POST",
+        body: formData,
+      });
 
-      setPredictedBreeds(mockPredictions)
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
 
-      // Auto-fill the breed field with the top prediction
-      if (mockPredictions.length > 0) {
-        setFormData((prev) => ({ ...prev, breed: mockPredictions[0].breed }))
+      const data = await response.json();
+
+      // Transform the API response into our BreedPrediction format
+      const predictions: BreedPrediction[] = Object.entries(data.all_classes)
+        .map(([breed, confidence]) => ({
+          breed,
+          confidence: confidence as number,
+        }))
+        .sort((a, b) => b.confidence - a.confidence) // Sort by confidence descending
+        .slice(0, 3); // Take top 3 predictions
+
+      setPredictedBreeds(predictions);
+
+      if (predictions.length > 0) {
+        setFormData((prev) => ({ ...prev, race: predictions[0].breed }));
       }
     } catch (error) {
-      console.error("Error predicting breed:", error)
-      setUploadError("Failed to analyze image. Please try again.")
+      console.error("Error predicting breed:", error);
+      setUploadError("Failed to analyze image. Please try again.");
     } finally {
-      setIsAnalyzing(false)
+      setIsAnalyzing(false);
     }
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // In real app, this would save the pet data
-    router.push("/owner/pets")
-  }
+  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user?.id) return
+    try {
+      // Prepare the request body
+      const requestBody = {
+        nom: formData.nom,
+        espece: formData.espece,
+        race: formData.race,
+        dateNaissance: formData.dateNaissance 
+          ? new Date(formData.dateNaissance).toISOString() 
+          : new Date().toISOString(), // Fallback to current date if not provided
+        sexe: formData.sexe,
+        proprietaireId:user.id// Replace with actual owner ID or get from auth context
+      };
+  
+      // Send the request
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/animal`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const result = await response.json();
+      console.log('Success:', result);
+      router.push('/owner/pets');
+      
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setUploadError('Failed to save pet information. Please try again.');
+    }finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   return (
     <div className="space-y-8">
@@ -137,22 +194,25 @@ export default function AddPet() {
               <div className="space-y-4">
                 {selectedImage ? (
                   <div className="relative">
-                    <Image
-                      src={selectedImage || "/placeholder.svg"}
-                      alt="Pet photo"
-                      width={300}
-                      height={300}
-                      className="rounded-lg object-cover mx-auto"
-                    />
+                    <div className="relative w-full h-64 rounded-lg overflow-hidden bg-gray-100">
+                      <Image
+                        alt="Pet photo"
+                        fill
+                        className="object-contain" // or "object-contain" based on preference
+                        priority
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        src={selectedImage}
+                      />
+                    </div>
                     <div className="flex space-x-2 mt-4 justify-center">
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          setSelectedImage(null)
-                          setImageFile(null)
-                          setPredictedBreeds([])
+                          setSelectedImage(null);
+                          setImageFile(null);
+                          setPredictedBreeds([]);
                         }}
                       >
                         Remove Photo
@@ -175,18 +235,22 @@ export default function AddPet() {
                     <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-600 mb-4">Upload a photo of your pet</p>
                     <input
+                      ref={fileInputRef}
                       type="file"
                       accept="image/*"
                       onChange={handleImageUpload}
                       className="hidden"
                       id="pet-photo"
                     />
-                    <Label htmlFor="pet-photo" className="cursor-pointer">
-                      <Button type="button" variant="outline">
-                        Choose Photo
-                      </Button>
-                    </Label>
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={triggerFileInput}
+                    >
+                      Choose Photo
+                    </Button>
                     {uploadError && <p className="text-red-500 text-sm mt-2">{uploadError}</p>}
+                    <p className="text-xs text-gray-500 mt-2">JPEG, PNG up to 5MB</p>
                   </div>
                 )}
 
@@ -210,7 +274,7 @@ export default function AddPet() {
                         <div key={index} className="flex justify-between items-center">
                           <p className="text-green-800">{prediction.breed}</p>
                           <Badge variant="outline" className="bg-white">
-                            {Math.round(prediction.confidence * 100)}% confidence
+                          {(prediction.confidence * 100).toFixed(2)}% confidence
                           </Badge>
                         </div>
                       ))}
@@ -230,76 +294,80 @@ export default function AddPet() {
             <CardContent className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="name">Pet Name *</Label>
+                  <Label htmlFor="nom">Pet Name *</Label>
                   <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
+                    id="nom"
+                    value={formData.nom}
+                    onChange={(e) => handleInputChange("nom", e.target.value)}
                     placeholder="e.g., Whiskers"
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="breed">Breed</Label>
+                  <Label htmlFor="espece">Species *</Label>
                   <Input
-                    id="breed"
-                    value={formData.breed}
-                    onChange={(e) => handleInputChange("breed", e.target.value)}
+                    id="espece"
+                    value={formData.espece}
+                    onChange={(e) => handleInputChange("espece", e.target.value)}
+                    placeholder="e.g., Cat, Dog"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="race">Breed</Label>
+                  <Input
+                    id="race"
+                    value={formData.race}
+                    onChange={(e) => handleInputChange("race", e.target.value)}
                     placeholder="e.g., Persian Cat"
                   />
                   {predictedBreeds.length > 0 && (
                     <p className="text-xs text-gray-500 mt-1">AI suggested: {predictedBreeds[0].breed}</p>
                   )}
                 </div>
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="age">Age</Label>
+                  <Label htmlFor="sexe">Gender</Label>
                   <Input
-                    id="age"
-                    value={formData.age}
-                    onChange={(e) => handleInputChange("age", e.target.value)}
-                    placeholder="e.g., 3 years"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="weight">Weight</Label>
-                  <Input
-                    id="weight"
-                    value={formData.weight}
-                    onChange={(e) => handleInputChange("weight", e.target.value)}
-                    placeholder="e.g., 4.2 kg"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="color">Color</Label>
-                  <Input
-                    id="color"
-                    value={formData.color}
-                    onChange={(e) => handleInputChange("color", e.target.value)}
-                    placeholder="e.g., White"
+                    id="sexe"
+                    value={formData.sexe}
+                    onChange={(e) => handleInputChange("sexe", e.target.value)}
+                    placeholder="e.g., Male, Female"
                   />
                 </div>
               </div>
 
-              <div>
-                <Label htmlFor="notes">Additional Notes</Label>
-                <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => handleInputChange("notes", e.target.value)}
-                  placeholder="Any special notes about your pet..."
-                  rows={3}
-                />
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="dateNaissance">Birth Date</Label>
+                  <Input
+                    id="dateNaissance"
+                    type="date"
+                    value={formData.dateNaissance}
+                    onChange={(e) => handleInputChange("dateNaissance", e.target.value)}
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
 
           <div className="flex space-x-4">
-            <Button type="submit" className="btn-primary">
-              Add Pet
-            </Button>
+          <Button 
+            type="submit"
+            className="bg-violet-600 hover:bg-violet-700"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              'Add Pet'
+            )}
+          </Button>
             <Button type="button" variant="outline" asChild>
               <Link href="/owner/pets">Cancel</Link>
             </Button>
@@ -307,5 +375,5 @@ export default function AddPet() {
         </div>
       </form>
     </div>
-  )
+  );
 }

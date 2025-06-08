@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Button} from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
   Calendar,
@@ -16,10 +16,12 @@ import {
   MapPin,
   X,
   MessageCircle,
+  CreditCard,
+  Check
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useAuth } from "@/components/auth-provider"
-
+import { CheckCircle2, XCircle } from 'lucide-react';
 type RendezVous = {
   id: number
   date: string
@@ -28,11 +30,13 @@ type RendezVous = {
   type: string
   statut: string
   notes?: string
+  amount?: number
   veterinaire: {
     nom: string
     prenom: string
     email: string
   }
+  lastSuccessfulPaiementId: string | null
   animaux: {
     animal: {
       nom: string
@@ -74,6 +78,40 @@ export default function MyAppointments() {
   const { user, token } = useAuth()
   const [appointments, setAppointments] = useState<RendezVous[]>([])
   const [loading, setLoading] = useState(true)
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    type: 'success' | 'error';
+    message: string;
+  }>({ show: false, type: 'success', message: '' });
+  useEffect(() => {
+    // Parse URL query parameters
+    const searchParams = new URLSearchParams(window.location.search);
+    const success = searchParams.get('success');
+    const paymentId = searchParams.get('paymentId');
+    const error = searchParams.get('error');
+  
+    // Only show notification if we have payment-related params
+    if (success || error) {
+      setNotification({
+        show: true,
+        type: success === 'true' ? 'success' : 'error',
+        message: success === 'true'
+          ? `Payment successful! ${paymentId ? `(Ref: ${paymentId.slice(-6)})` : ''}`
+          : error || 'Payment processing failed'
+      });
+       
+      // Clear the URL parameters after reading them
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+  
+      // Auto-hide after 5 seconds
+      const timer = setTimeout(() => {
+        setNotification(prev => ({ ...prev, show: false }));
+      }, 5000);
+  
+      return () => clearTimeout(timer);
+    }
+  }, []); // Empty dependency array = runs once on mount
 
   useEffect(() => {
     if (!user?.id) return
@@ -110,13 +148,73 @@ export default function MyAppointments() {
         )
       )
     } catch (error) {
-      console.error("Erreur lors de l’annulation :", error)
+      console.error("Erreur lors de l'annulation :", error)
       alert("Failed to cancel the appointment.")
     }
   }
 
+  const handlePayment = async (rendezvousId: number, amount: number) => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          rendezvousId: rendezvousId,
+          amount: amount
+        })
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) throw new Error(data.message || "Failed to initiate payment")
+      console.log(data)
+      
+      if (data.success && data.link) {
+        window.location.href = data.link
+      } else {
+        throw new Error("Payment initiation failed - no redirect URL provided")
+      }
+    } catch (error) {
+      console.error("Payment initiation error:", error)
+      alert("Failed to start payment process")
+    }
+  }
+
   return (
+    
     <div className="space-y-8">
+       {notification.show && (
+        <div
+          className={`fixed top-4 right-4 p-4 rounded-md shadow-md max-w-xs z-50 ${
+            notification.type === "success"
+              ? "bg-green-100 text-green-800 border-l-4 border-green-500"
+              : "bg-red-100 text-red-800 border-l-4 border-red-500"
+          }`}
+        >
+          <div className="flex items-start">
+            {notification.type === "success" ? (
+              <CheckCircle2 className="h-5 w-5 mt-0.5 mr-2 flex-shrink-0" />
+            ) : (
+              <XCircle className="h-5 w-5 mt-0.5 mr-2 flex-shrink-0" />
+            )}
+            <div className="flex-1">
+              <p className="text-sm font-medium">{notification.message}</p>
+            </div>
+            <Button
+              onClick={() =>
+                setNotification((prev) => ({ ...prev, show: false }))
+              }
+              className="ml-2 text-gray-500 hover:text-gray-700"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div>
         <h1 className="text-3xl font-bold text-gray-900">My Appointments</h1>
         <p className="text-gray-600 mt-2">
@@ -137,7 +235,7 @@ export default function MyAppointments() {
             const petNames = appointment.animaux
               .map((a) => a.animal.nom)
               .join(", ")
-
+              console.log(appointment.lastSuccessfulPaiementId)
             return (
               <Card key={appointment.id}>
                 <CardHeader>
@@ -177,47 +275,73 @@ export default function MyAppointments() {
                     </div>
                   </div>
 
-<div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {appointment.statut === "pending" && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-red-600 hover:text-red-700"
-                        onClick={() => handleCancel(appointment.id)}
-                      >
-                        <X className="h-4 w-4 mr-1" />
-                        Cancel
-                      </Button>
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700"
+                          onClick={() => handleCancel(appointment.id)}
+                        >
+                          <X className="h-4 w-4 mr-1" />
+                          Cancel
+                        </Button>
+
+                        {!appointment.lastSuccessfulPaiementId && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-green-600 hover:text-green-700"
+                            onClick={() => handlePayment(appointment.id, appointment.amount || 100)}
+                          >
+                            <CreditCard className="h-4 w-4 mr-1" />
+                            Pay Now
+                          </Button>
+                        )}
+
+                        {
+                        appointment.lastSuccessfulPaiementId  && (
+                          <span className="px-3 py-2 text-sm text-green-600">
+                            <Check className="h-4 w-4 inline mr-1" />
+                            Paid 
+                          </span>
+                        )}
+                      </>
                     )}
 
-  {appointment.statut === "confirmed" && (
-    <>
-      {appointment.type === "online" &&
-        appointment.notes?.toLowerCase().includes("video") && (
-          <Button size="sm" className="btn-primary">
-            <Video className="h-4 w-4 mr-1" />
-            Join Video Call
-          </Button>
-        )}
+                    {appointment.statut === "confirmed" && (
+                      <>
+                        {appointment.type === "online" &&
+                          appointment.notes?.toLowerCase().includes("video") && (
+                            <Button size="sm" className="bg-primary text-primary-foreground">
+                              <Video className="h-4 w-4 mr-1" />
+                              Join Video Call
+                            </Button>
+                          )}
 
-      {appointment.type === "online" &&
-        appointment.notes?.toLowerCase().includes("chat") && (
-          <Button size="sm" className="btn-primary">
-            <MessageCircle className="h-4 w-4 mr-1" />
-            Open Chat
-          </Button>
-        )}
+                        {appointment.type === "online" &&
+                          appointment.notes?.toLowerCase().includes("chat") && (
+                            <Button size="sm" className="bg-primary text-primary-foreground">
+                              <MessageCircle className="h-4 w-4 mr-1" />
+                              Open Chat
+                            </Button>
+                          )}
 
-    <Button
-      variant="outline"
-      size="sm"
-      className="text-green-600 hover:text-green-700"
-    >      Proceed to payement
-    </Button>
-    </>
-  )}
-</div>
-
+                        {!appointment.lastSuccessfulPaiementId && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-green-600 hover:text-green-700"
+                            onClick={() => handlePayment(appointment.id, 100)}
+                          >
+                            <CreditCard className="h-4 w-4 mr-1" />
+                            Proceed to payment
+                          </Button>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             )

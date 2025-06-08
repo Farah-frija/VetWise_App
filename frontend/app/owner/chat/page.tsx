@@ -24,7 +24,11 @@ export default function ChatRedirect() {
       .then((res) => {
         if (res.ok) {
           // STEP 3: Redirect with user ID
-         window.location.href = `http://localhost:3002/app?userId=${user.id}`;
+          window.open(
+            `http://localhost:3002/app?userId=${user.id}`,
+            '_blank',
+            'noopener,noreferrer' // Security best practice for new windows
+          );
         }
       })
       .catch((err) => {
@@ -38,3 +42,4 @@ export default function ChatRedirect() {
 function useAuth(): { user: any; token: any; } {
   throw new Error("Function not implemented.");
 }
+
