@@ -20,13 +20,18 @@ interface Animal {
 
 interface Consultation {
   id: number;
-  date: string;
-  vet: string;
+  dateConsultation: string;
+  veterinaire:Vet;
   type: string;
-  diagnosis: string;
-  treatment: string;
+  diagnostic: string;
+  traitement: string;
   notes: string;
 }
+interface Vet {
+  nom:string;
+  prenom:string;
+}
+
 
 
 export default function PetProfile() {
@@ -181,19 +186,19 @@ export default function PetProfile() {
                     <div className="flex justify-between items-start mb-3">
                       <div>
                         <h4 className="font-semibold">{consultation.type}</h4>
-                        <p className="text-sm text-gray-600">with {consultation.vet}</p>
+                        <p className="text-sm text-gray-600">with {consultation.veterinaire.nom} {consultation.veterinaire.prenom}</p>
                       </div>
-                      <Badge variant="secondary">{consultation.date}</Badge>
+                      <Badge variant="secondary">{consultation.dateConsultation}</Badge>
                     </div>
 
                     <div className="space-y-2 text-sm">
                       <div>
                         <span className="font-medium text-gray-700">Diagnosis: </span>
-                        <span>{consultation.diagnosis}</span>
+                        <span>{consultation.diagnostic}</span>
                       </div>
                       <div>
                         <span className="font-medium text-gray-700">Treatment: </span>
-                        <span>{consultation.treatment}</span>
+                        <span>{consultation.traitement}</span>
                       </div>
                       {consultation.notes && (
                         <div>
