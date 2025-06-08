@@ -33,7 +33,14 @@ interface ChangePasswordData {
 export default function OwnerProfile() {
   const { user } = useAuth();
   const { request } = useApiRequest();
-  const { profileImage, setProfileImage, refreshProfile } = useProfile(); // Use context
+  const {
+    profileImage,
+    setProfileImage,
+    nom,
+    prenom,
+    setUserNames,
+    refreshProfile,
+  } = useProfile(); // Use context for names too
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -83,6 +90,10 @@ export default function OwnerProfile() {
           telephone: userData.telephone || "",
           adresse: userData.adresse || "",
         });
+
+        // Update context with names
+        setUserNames(userData.nom || "", userData.prenom || "");
+
         if (userData.image) {
           setProfileImage(userData.image); // Update context
         } else {
@@ -113,6 +124,9 @@ export default function OwnerProfile() {
         throw new Error("Failed to update profile");
       }
 
+      // Update context with new names immediately after successful API call
+      setUserNames(formData.nom, formData.prenom);
+
       if (imageFile) {
         const formData = new FormData();
         formData.append("image", imageFile);
@@ -133,6 +147,9 @@ export default function OwnerProfile() {
         } else {
           throw new Error("Failed to update profile image");
         }
+      } else {
+        // If no image update, just refresh to notify other components
+        refreshProfile();
       }
 
       setIsEditing(false);

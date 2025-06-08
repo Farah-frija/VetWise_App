@@ -180,7 +180,14 @@ export default function OwnerLayout({
   const { user, token, isLoading } = useAuth(); // Add token and isLoading
   const router = useRouter();
   const { request } = useApiRequest();
-  const { profileImage, setProfileImage, profileVersion } = useProfile();
+  const {
+    profileImage,
+    setProfileImage,
+    nom,
+    prenom,
+    setUserNames,
+    profileVersion,
+  } = useProfile(); // Use context for names
   const [profileLoading, setProfileLoading] = useState(true);
 
   // Load user profile data
@@ -201,6 +208,10 @@ export default function OwnerLayout({
 
         if (response.ok) {
           const userData = await response.json();
+
+          // Update context with user names
+          setUserNames(userData.nom || "", userData.prenom || "");
+
           if (userData.image) {
             setProfileImage(userData.image);
           } else {
@@ -210,13 +221,14 @@ export default function OwnerLayout({
       } catch (error) {
         console.error("Failed to load user profile:", error);
         setProfileImage(null);
+        setUserNames("", ""); // Reset names on error
       } finally {
         setProfileLoading(false);
       }
     };
 
     loadUserProfile();
-  }, [user, token, request, profileVersion]); // Add profileVersion as dependency
+  }, [user, token, request, profileVersion, setProfileImage, setUserNames]); // Add setUserNames to dependencies
 
   useEffect(() => {
     // Don't redirect while still loading
@@ -250,6 +262,10 @@ export default function OwnerLayout({
     return null;
   }
 
+  // Use context values for display, fallback to user object if context not loaded yet
+  const displayPrenom = prenom || user.prenom;
+  const displayNom = nom || user.nom;
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -267,12 +283,12 @@ export default function OwnerLayout({
             <div className="flex items-center space-x-3 text-sm text-gray-600">
               <ProfileImage
                 src={profileImage}
-                alt={`${user.prenom} ${user.nom}'s profile`}
+                alt={`${displayPrenom} ${displayNom}'s profile`}
                 loading={profileLoading}
                 className="w-8 h-8 rounded-full object-cover border border-gray-200"
               />
               <div>
-                Welcome, {user.prenom} {user.nom}
+                Welcome, {displayPrenom} {displayNom}
               </div>
             </div>
           </div>
