@@ -26,10 +26,10 @@ VetWise is a web platform that streamlines veterinary appointment management for
 ---
 
 ## Features
-
 ### 🔐 Authentication (Sprint 1)
 - Sign up / Sign in
 - Email verification
+<p align="center"><img src="mail_verif.png" width="500"/></p>
 - Password reset
 - Two-factor authentication (2FA)
 - User profile management
@@ -37,6 +37,7 @@ VetWise is a web platform that streamlines veterinary appointment management for
 ### 🐶 Pet Management (Sprint 1)
 - Add and consult pet profiles
 - AI-assisted species and breed detection from photo upload
+<p align="center"><img src="prediction_interface.png" width="500"/></p>
 
 ### 📅 Appointments & Consultations (Sprint 2)
 - Veterinarian availability management (by weekday or specific date)
@@ -44,14 +45,20 @@ VetWise is a web platform that streamlines veterinary appointment management for
 - Manual confirmation by the veterinarian
 - Daily schedule view
 - Consultation history
+<p align="center"><img src="conversation_diagram.png" width="500"/></p>
 
 ### 📹 Online Consultations & Payments (Sprint 3)
 - Real-time video consultations via **Agora SDK**
 - In-app messaging between owners and veterinarians
 - Online payment via **Flouci API**
+<p align="center">
+  <img src="communication_interface.png" width="500"/>
+  <img src="interface_de_la_video_conf.png" width="500"/>
+</p>
+
+
 
 ---
-
 ## Tech Stack
 
 | Layer | Technology |
@@ -62,6 +69,8 @@ VetWise is a web platform that streamlines veterinary appointment management for
 | Database | PostgreSQL |
 | Video | Agora SDK |
 | Payment | Flouci API |
+
+> **Note:** Next.js handles the main application (appointments, profiles, consultations). React handles the real-time chat interface.
 
 ---
 
@@ -109,17 +118,32 @@ The prediction feature classifies pet images into **28 animal species** using a 
 ### Prerequisites
 - Node.js >= 16
 - npm or yarn
+- PostgreSQL database
 
 ### Installation & Running
 
-#### Chat Service (port 3002)
+#### 1. Database
+Create a PostgreSQL database and configure the connection URL in the backend `.env` file.
+
+#### 2. Backend (NestJS)
 ```bash
-cd chat
+cd backend
 npm install
 npm start
 ```
 
-> Runs on [http://localhost:3002](http://localhost:3002)
+#### 3. Main Frontend (Next.js — port 3000)
+```bash
+cd frontend
+npm install
+npm run build
+npm start
+```
+
+> Runs on [http://localhost:3000](http://localhost:3000)
+
+
+
 
 ---
 
